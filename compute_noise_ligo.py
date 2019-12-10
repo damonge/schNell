@@ -5,9 +5,6 @@ from matplotlib import cm
 
 class Detector(object):
     rot_freq_earth = 2*np.pi/(24*3600)
-    tran_freq_earth = 2*np.pi/(24*3600*365) # approximating circular orbit
-    cos_ecliptic = np.cos(np.radians(23.))
-    sin_ecliptic = np.sin(np.radians(23.))
     earth_radius = 6.371E6 # in meters
 
     def __init__(self, lat, lon, alpha, fname_psd):
@@ -19,9 +16,6 @@ class Detector(object):
         self.st = np.sin(self.theta_e)
         self.ca = np.cos(np.radians(self.alpha))
         self.sa = np.sin(np.radians(self.alpha))
-        self.nv_e0 = np.array([self.st*np.cos(self.phi_e),
-                               self.st*np.sin(self.phi_e),
-                               self.ct])
         self.read_psd(fname_psd)
 
     def read_psd(self, fname):
@@ -29,7 +23,7 @@ class Detector(object):
         nu, fnu = np.loadtxt(fname, unpack=True)
         self.lpsdf = interp1d(np.log(nu),np.log(fnu),
                               bounds_error=False,
-                              fill_value=1E15)
+                              fill_value=15)
 
     def psd(self, nu):
         return np.exp(2*self.lpsdf(np.log(nu)))
@@ -92,7 +86,8 @@ class MapCalculator(object):
         
         # [3, npix]
         nv = np.array([st*cp,st*sp,ct])
-        
+
+        # [nt, npix]
         bprod = np.einsum('ik,il',x_A-x_B,nv)
         return bprod
 
@@ -118,13 +113,14 @@ class MapCalculator(object):
         e_x = l[:,None,...]*m[None,:,...]+m[:,None,...]*l[None,:,...]
 
         # Tr[a_A*e_+]
+        # [nt, npix]
         tr_Ap = np.einsum('ijk,jil',a_A, e_p)
         tr_Bp = np.einsum('ijk,jil',a_B, e_p)
         tr_Ax = np.einsum('ijk,jil',a_A, e_x)
         tr_Bx = np.einsum('ijk,jil',a_B, e_x)
 
         # Gammas
-        prefac = 5/(8*np.pi)
+        prefac = 5/(16*np.pi)
         if pol:
             g = prefac*np.array([tr_Ap*tr_Bp+tr_Ax*tr_Bx, # I
                                  tr_Ap*tr_Bp-tr_Ax*tr_Bx, # Q
@@ -175,13 +171,13 @@ class MapCalculator(object):
                 gls[i_f, i_t, :] = (g_r + g_i) * pre_A[i_f] * pre_B[i_f]
 
         return np.squeeze(gls)
-                
 
-dets = {'Hanford':     Detector(46.4, -119.4, 171.8, 'data/curves_May_2019/o3_l1.txt'),
-        'Livingstone': Detector(30.7,  -90.8, 243.0, 'data/curves_May_2019/o3_l1.txt'),
-        'VIRGO':       Detector(43.6,   10.5, 116.5, 'data/curves_May_2019/o3_l1.txt'),
-        'Kagra':       Detector(36.3,  137.2, 225.0, 'data/curves_May_2019/o3_l1.txt'),
-        'GEO600':      Detector(48.0,    9.8,  68.8, 'data/curves_May_2019/o3_l1.txt')}
+
+dets = {'Hanford':     Detector(46.4, -119.4, 171.8, 'data/curves_May_2019/aligo_design.txt'),  # are these per-detector PSDs?
+        'Livingstone': Detector(30.7,  -90.8, 243.0, 'data/curves_May_2019/aligo_design.txt'),  # are these per-detector PSDs?
+        'VIRGO':       Detector(43.6,   10.5, 116.5, 'data/curves_May_2019/advirgo_sqz.txt'),
+        'Kagra':       Detector(36.3,  137.2, 225.0, 'data/curves_May_2019/kagra_sqz.txt'),
+        'GEO600':      Detector(48.0,    9.8,  68.8, 'data/curves_May_2019/o1.txt')}
 
 mcals = {s1: {s2: MapCalculator(d1, d2) for s2, d2 in dets.items()} for s1, d1 in dets.items()}
 
@@ -189,7 +185,7 @@ nside=64
 theta, phi = hp.pix2ang(nside,np.arange(hp.nside2npix(nside)))
 
 plt.figure()
-obs_time = 5*365*24*3600.
+obs_time = 1000*365*24*3600.
 nl = np.zeros(3*nside)
 freqs = np.linspace(10., 1010., 101)
 dfreq = np.mean(np.diff(freqs))
@@ -214,8 +210,4 @@ plt.plot(ls, 4E-26 * ls ** (5. / 6.), 'r-')
 plt.xlabel('$\\ell$', fontsize=16)
 plt.ylabel('$N_\\ell$', fontsize=16)
 plt.loglog()
-
-#hp.mollview(mcals['Hanford']['Livingstone'].get_baseline_product(0.,theta, phi),coord=['C','G'])
-#for t in np.linspace(0, 24*3600, 10):
-#    hp.mollview(mcals['Hanford']['Livingstone'].get_gamma(t ,theta, phi),coord=['C','G'])
 plt.show()
