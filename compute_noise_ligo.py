@@ -10,7 +10,7 @@ class Detector(object):
     sin_ecliptic = np.sin(np.radians(23.))
     earth_radius = 6.371E6 # in meters
 
-    def __init__(self, lat, lon, alpha):
+    def __init__(self, lat, lon, alpha, fname_psd):
         # Translate between Renzini's alpha and mine
         self.alpha = alpha - 45.
         self.phi_e = np.radians(lon)
@@ -22,6 +22,17 @@ class Detector(object):
         self.nv_e0 = np.array([self.st*np.cos(self.phi_e),
                                self.st*np.sin(self.phi_e),
                                self.ct])
+        self.read_psd(fname_psd)
+
+    def read_psd(self, fname):
+        from scipy.interpolate import interp1d
+        nu, fnu = np.loadtxt(fname, unpack=True)
+        self.lpsdf = interp1d(np.log(nu),np.log(fnu),
+                              bounds_error=False,
+                              fill_value=1E15)
+
+    def psd(self, nu):
+        return np.exp(2*self.lpsdf(np.log(nu)))
 
     def get_position(self, t):
         phi = self.phi_e + self.rot_freq_earth * t
@@ -52,9 +63,16 @@ class Detector(object):
 class MapCalculator(object):
     clight = 299792458.
 
-    def __init__(self, det_A, det_B):
+    def __init__(self, det_A, det_B, f_pivot=63.):
         self.det_A = det_A
         self.det_B = det_B
+        self.f_pivot = f_pivot
+
+    def norm_pivot(self, h=0.67):
+        # H0 in km/s/Mpc in Hz
+        H0 = h * 3.24077929E-18
+        # 2 pi^2 f^3 / 3 H0^2
+        return 2 * np.pi**2 * self.f_pivot**3 / (3 * H0**2)
 
     def _precompute_skyvec(self, theta, phi):
         theta_use = np.atleast_1d(theta)
@@ -138,11 +156,9 @@ class MapCalculator(object):
         # [nt, npix]
         bn = self._get_baseline_product(t,ct,st,cp,sp)
 
-        # TODO: get power spectral densities
-        s_A = np.ones_like(f_use)
-        s_B = np.ones_like(f_use)
-        # TODO: get frequency dependence
-        e_f = np.ones_like(f_use)
+        s_A = self.det_A.psd(f_use)
+        s_B = self.det_B.psd(f_use)
+        e_f = (f_use / self.f_pivot)**(-7./3.) / self.norm_pivot()
         pre_A = 16 * np.pi * e_f / (5 * s_A)
         pre_B = 16 * np.pi * e_f / (5 * s_B)
 
@@ -161,11 +177,11 @@ class MapCalculator(object):
         return np.squeeze(gls)
                 
 
-dets = {'Hanford':     Detector(46.4, -119.4, 171.8),
-        'Livingstone': Detector(30.7,  -90.8, 243.0),
-        'VIRGO':       Detector(43.6,   10.5, 116.5),
-        'Kagra':       Detector(36.3,  137.2, 225.0),
-        'GEO600':      Detector(48.0,    9.8,  68.8)}
+dets = {'Hanford':     Detector(46.4, -119.4, 171.8, 'data/curves_May_2019/o3_l1.txt'),
+        'Livingstone': Detector(30.7,  -90.8, 243.0, 'data/curves_May_2019/o3_l1.txt'),
+        'VIRGO':       Detector(43.6,   10.5, 116.5, 'data/curves_May_2019/o3_l1.txt'),
+        'Kagra':       Detector(36.3,  137.2, 225.0, 'data/curves_May_2019/o3_l1.txt'),
+        'GEO600':      Detector(48.0,    9.8,  68.8, 'data/curves_May_2019/o3_l1.txt')}
 
 mcals = {s1: {s2: MapCalculator(d1, d2) for s2, d2 in dets.items()} for s1, d1 in dets.items()}
 
@@ -173,14 +189,33 @@ nside=64
 theta, phi = hp.pix2ang(nside,np.arange(hp.nside2npix(nside)))
 
 plt.figure()
-nls = []
-for i_f, f in enumerate(np.geomspace(10., 1000., 20)):
-    nl = mcals['Hanford']['Livingstone'].get_G_ell(0.,f, nside)
-    nls.append(nl)
-    plt.plot(1./nl,'-',c=cm.bone((i_f+0.5)/20))
-plt.plot(1./np.mean(np.array(nls),axis=0),'k-')
+obs_time = 5*365*24*3600.
+nl = np.zeros(3*nside)
+freqs = np.linspace(10., 1010., 101)
+dfreq = np.mean(np.diff(freqs))
+for f in freqs:
+    print(f)
+    n = mcals['Hanford']['Livingstone'].get_G_ell(0, f, nside) * dfreq
+    n += mcals['Hanford']['VIRGO'].get_G_ell(0, f, nside) * dfreq
+    n += mcals['Hanford']['Kagra'].get_G_ell(0, f, nside) * dfreq
+    n += mcals['Hanford']['GEO600'].get_G_ell(0, f, nside) * dfreq
+    n += mcals['Livingstone']['VIRGO'].get_G_ell(0, f, nside) * dfreq
+    n += mcals['Livingstone']['Kagra'].get_G_ell(0, f, nside) * dfreq
+    n += mcals['Livingstone']['GEO600'].get_G_ell(0, f, nside) * dfreq
+    n += mcals['VIRGO']['Kagra'].get_G_ell(0, f, nside) * dfreq
+    n += mcals['VIRGO']['GEO600'].get_G_ell(0, f, nside) * dfreq
+    n += mcals['Kagra']['GEO600'].get_G_ell(0, f, nside) * dfreq
+    nl += n
+nl *= obs_time
+ls = np.arange(len(nl))
+nl = 1./nl
+plt.plot(ls, ls * (ls + 1.) * nl / (2 * np.pi), 'k--')
+plt.plot(ls, 4E-26 * ls ** (5. / 6.), 'r-')
+plt.xlabel('$\\ell$', fontsize=16)
+plt.ylabel('$N_\\ell$', fontsize=16)
 plt.loglog()
 
-hp.mollview(mcals['Hanford']['Livingstone'].get_baseline_product(0.,theta, phi),coord=['C','G'])
-hp.mollview(mcals['Hanford']['Livingstone'].get_gamma(0.,theta, phi),coord=['C','G'])
+#hp.mollview(mcals['Hanford']['Livingstone'].get_baseline_product(0.,theta, phi),coord=['C','G'])
+#for t in np.linspace(0, 24*3600, 10):
+#    hp.mollview(mcals['Hanford']['Livingstone'].get_gamma(t ,theta, phi),coord=['C','G'])
 plt.show()
