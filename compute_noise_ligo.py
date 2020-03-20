@@ -4,19 +4,14 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 
 class Detector(object):
-    rot_freq_earth = 2*np.pi/(24*3600)
-    earth_radius = 6.371E6 # in meters
+    def __init__(self):
+        raise NotImplementedError("Don't use the bare class")
 
-    def __init__(self, lat, lon, alpha, fname_psd):
-        # Translate between Renzini's alpha and mine
-        self.alpha = alpha - 45.
-        self.phi_e = np.radians(lon)
-        self.theta_e = np.radians(90-lat)
-        self.ct = np.cos(self.theta_e)
-        self.st = np.sin(self.theta_e)
-        self.ca = np.cos(np.radians(self.alpha))
-        self.sa = np.sin(np.radians(self.alpha))
-        self.read_psd(fname_psd)
+    def get_position(self, t):
+        raise NotImplementedError("get_position not implemented")
+
+    def get_a(self, t):
+        raise NotImplementedError("get_a not implemented")
 
     def read_psd(self, fname):
         from scipy.interpolate import interp1d
@@ -27,6 +22,25 @@ class Detector(object):
 
     def psd(self, nu):
         return np.exp(2*self.lpsdf(np.log(nu)))
+
+    
+class GroundDetector(Detector):
+    rot_freq_earth = 2*np.pi/(24*3600)
+    earth_radius = 6.371E6 # in meters
+
+    def __init__(self, lat, lon, alpha, fname_psd, aperture=90):
+        # Translate between Renzini's alpha and mine
+        self.alpha = np.radians(alpha)
+        self.beta = np.radians(aperture / 2)
+        self.phi_e = np.radians(lon)
+        self.theta_e = np.radians(90-lat)
+        self.ct = np.cos(self.theta_e)
+        self.st = np.sin(self.theta_e)
+        self.cabp = np.cos(self.alpha+self.beta)
+        self.cabm = np.cos(self.alpha-self.beta)
+        self.sabp = np.sin(self.alpha+self.beta)
+        self.sabm = np.sin(self.alpha-self.beta)
+        self.read_psd(fname_psd)
 
     def get_position(self, t):
         phi = self.phi_e + self.rot_freq_earth * t
@@ -43,24 +57,27 @@ class Detector(object):
         sp = np.sin(phi)
         o = np.ones_like(t)
         # [3, nt]
-        x = np.array([-self.ca*cp*self.ct-self.sa*sp,
-                      self.sa*cp-self.ca*sp*self.ct,
-                      self.ca*self.st*o])
+        x = np.array([-self.cabm*cp*self.ct-self.sabm*sp,
+                      self.sabm*cp-self.cabm*sp*self.ct,
+                      self.cabm*self.st*o])
+
         # [3, nt]
-        y = np.array([self.sa*cp*self.ct-self.ca*sp,
-                      self.ca*cp+self.sa*sp*self.ct,
-                      -self.sa*self.st*o])
+        y = np.array([-self.cabp*cp*self.ct-self.sabp*sp,
+                      self.sabp*cp-self.cabp*sp*self.ct,
+                      self.cabp*self.st*o])
         # [3, 3, nt]
         a = (x[:,None,...]*x[None,:,...]-y[:,None,...]*y[None,:,...])*0.5
         return a
 
+
 class MapCalculator(object):
     clight = 299792458.
 
-    def __init__(self, det_A, det_B, f_pivot=63.):
+    def __init__(self, det_A, det_B, f_pivot=63., spectral_index=2./3.):
         self.det_A = det_A
         self.det_B = det_B
         self.f_pivot = f_pivot
+        self.spectral_index_omega = spectral_index - 3
 
     def norm_pivot(self, h=0.67):
         # H0 in km/s/Mpc in Hz
@@ -100,6 +117,7 @@ class MapCalculator(object):
 
         # [3, 3, nt]
         a_A = self.det_A.get_a(t_use)
+
         # [3, 3, nt]
         a_B = self.det_B.get_a(t_use)
 
@@ -154,7 +172,7 @@ class MapCalculator(object):
 
         s_A = self.det_A.psd(f_use)
         s_B = self.det_B.psd(f_use)
-        e_f = (f_use / self.f_pivot)**(-7./3.) / self.norm_pivot()
+        e_f = (f_use / self.f_pivot)**self.spectral_index_omega / self.norm_pivot()
         pre_A = 16 * np.pi * e_f / (5 * s_A)
         pre_B = 16 * np.pi * e_f / (5 * s_B)
 
@@ -173,16 +191,31 @@ class MapCalculator(object):
         return np.squeeze(gls)
 
 
-dets = {'Hanford':     Detector(46.4, -119.4, 171.8, 'data/curves_May_2019/aligo_design.txt'),  # are these per-detector PSDs?
-        'Livingstone': Detector(30.7,  -90.8, 243.0, 'data/curves_May_2019/aligo_design.txt'),  # are these per-detector PSDs?
-        'VIRGO':       Detector(43.6,   10.5, 116.5, 'data/curves_May_2019/advirgo_sqz.txt'),
-        'Kagra':       Detector(36.3,  137.2, 225.0, 'data/curves_May_2019/kagra_sqz.txt'),
-        'GEO600':      Detector(48.0,    9.8,  68.8, 'data/curves_May_2019/o1.txt')}
+dets = {'Hanford':     GroundDetector(46.4, -119.4, 171.8, 'data/curves_May_2019/aligo_design.txt'),  # are these per-detector PSDs?
+        'Livingstone': GroundDetector(30.7,  -90.8, 243.0, 'data/curves_May_2019/aligo_design.txt'),  # are these per-detector PSDs?
+        'VIRGO':       GroundDetector(43.6,   10.5, 116.5, 'data/curves_May_2019/advirgo_sqz.txt'),
+        'Kagra':       GroundDetector(36.3,  137.2, 225.0, 'data/curves_May_2019/kagra_sqz.txt'),
+        'GEO600':      GroundDetector(48.0,    9.8,  68.8, 'data/curves_May_2019/o1.txt')}
 
-mcals = {s1: {s2: MapCalculator(d1, d2) for s2, d2 in dets.items()} for s1, d1 in dets.items()}
+mcals = {s1: {s2: MapCalculator(d1, d2)
+              for s2, d2 in dets.items()}
+         for s1, d1 in dets.items()}
 
 nside=64
 theta, phi = hp.pix2ang(nside,np.arange(hp.nside2npix(nside)))
+
+for s,d in dets.items():
+    print(s, np.sum(mcals[s][s].get_gamma(0, theta, phi)*4*np.pi/hp.nside2npix(nside)))
+
+hp.mollview(mcals['Hanford']['Hanford'].get_gamma(0, theta, phi), coord=['C','G'],
+            title=r"$\gamma^I(\theta,\varphi)$", notext=True)
+plt.savefig("overlap_HH.pdf", bbox_inches='tight')
+hp.mollview(mcals['Hanford']['Livingstone'].get_gamma(0, theta, phi), coord=['C','G'],
+            title=r"$\gamma^I(\theta,\varphi)$", notext=True)
+plt.savefig("overlap_HL.pdf", bbox_inches='tight')
+hp.mollview(mcals['Livingstone']['Livingstone'].get_gamma(0, theta, phi), coord=['C','G'],
+            title=r"$\gamma^I(\theta,\varphi)$", notext=True)
+plt.savefig("overlap_LL.pdf", bbox_inches='tight')
 
 plt.figure()
 obs_time = 1000*365*24*3600.
