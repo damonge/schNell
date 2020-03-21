@@ -12,8 +12,8 @@ class Detector(object):
     def get_position(self, t):
         raise NotImplementedError("get_position not implemented")
 
-    def get_a(self, t):
-        raise NotImplementedError("get_a not implemented")
+    def get_xx_yy(self, t):
+        raise NotImplementedError("get_xx_yy not implemented")
 
     def read_psd(self, fname):
         from scipy.interpolate import interp1d
@@ -54,7 +54,7 @@ class GroundDetector(Detector):
                                              self.st*sp,
                                              self.ct*o])
 
-    def get_a(self, t):
+    def get_xx_yy(self, t):
         phi = self.phi_e + self.rot_freq_earth * t
         cp = np.cos(phi)
         sp = np.sin(phi)
@@ -68,9 +68,11 @@ class GroundDetector(Detector):
         y = np.array([-self.cabp*cp*self.ct-self.sabp*sp,
                       self.sabp*cp-self.cabp*sp*self.ct,
                       self.cabp*self.st*o])
+
         # [3, 3, nt]
-        a = (x[:,None,...]*x[None,:,...]-y[:,None,...]*y[None,:,...])*0.5
-        return a
+        xx = x[:,None,...]*x[None,:,...]
+        yy = y[:,None,...]*y[None,:,...]
+        return xx, yy
 
 
 class LISADetector(Detector):
@@ -133,7 +135,7 @@ class LISADetector(Detector):
         return self.R_AU * np.array([x, y, z])
 
 
-    def get_a(self, t):
+    def get_xx_yy(self, t):
         t_use = np.atleast1d(t)
         pos = self.pos_all(t_use)
         np0 = (self.i_d + 0) % 2
@@ -146,8 +148,6 @@ class LISADetector(Detector):
         yl = np.sqrt(np.sum(yv, axis=0))
         y = yv[:, :] / yl[None, :]
 
-        if self.map_transfer:
-            raise NotImplementedError("Map-level transfer function not implemented")
-        else:
-            a = (x[:,None,...]*x[None,:,...]-y[:,None,...]*y[None,:,...])*0.5
-        return a
+        xx = x[:,None,...]*x[None,:,...]
+        yy = y[:,None,...]*y[None,:,...]
+        return xx, yy

@@ -50,10 +50,12 @@ class MapCalculator(object):
         t_use = np.atleast_1d(t)
 
         # [3, 3, nt]
-        a_A = self.det_A.get_a(t_use)
+        xx_A, yy_A = self.det_A.get_xx_yy(t_use)
+        a_A = 0.5 * (xx_A - yy_A)
 
         # [3, 3, nt]
-        a_B = self.det_B.get_a(t_use)
+        xx_B, yy_B = self.det_B.get_xx_yy(t_use)
+        a_B = 0.5 * (xx_B - yy_B)
 
         # [3, npix]
         l = np.array([sp,-cp,np.zeros_like(sp)])
