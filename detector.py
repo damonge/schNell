@@ -71,3 +71,83 @@ class GroundDetector(Detector):
         # [3, 3, nt]
         a = (x[:,None,...]*x[None,:,...]-y[:,None,...]*y[None,:,...])*0.5
         return a
+
+
+class LISADetector(Detector):
+    trans_freq_earth = 2 * np.pi / (365 * 24 * 3600)
+    R_AU = 1.496E11
+    e = 0.00482419 # ellipticity (use this for 2.5 Gm arms)
+    #e = 0.00965 # ellipticity (use this for 5 Gm arms)
+    kap = 0 # initial longitude
+    lam = 0 # initial orientation
+    clight = 299792458.
+    L = 2.5E9 # Arm length
+    
+    def __init__(self, detector_id, map_transfer=False):
+        self.name = 'LISA'
+        self.i_d = detector_id % 2
+        self.map_transfer = map_transfer
+
+    def psd(self, nu):
+        # Equation 1 from 1803.01944 (without background)
+        # TODO: do these curves assume that you already have 2 independent detectors?
+        fstar = self.clight / (2 * np.pi * self.L)
+        Poms = (1.5E-11)**2*(1+(2E-3/nu)**4)
+        Pacc = (3E-15)**2 * (1 + (4E-4/nu)**2)*(1+(nu/8E-3)**4)
+        Pn = Poms + \
+             2 * (1 + np.cos(nu / fstar)**2) * Pacc / (2 * np.pi * nu)**4
+        Pn /= self.L**2
+
+        if self.map_transfer:
+            return Pn
+        else:
+            # TODO: check prefactor. I think it already accounts for the 60deg aperture.
+            Rinv = 10 * (1 +0.6 * (nu / fstar)**2) / 3
+            return Pn * Rinv
+        
+    def get_position(self, t):
+        return self.pos_single(t, self.i_d)
+
+    def pos_all(self, t):
+        return np.array([self.pos_single(t, i)
+                         for i in range(3)])
+
+    def pos_single(self, t, n):
+        # Equation 1 from gr-qc/0311069
+        a = self.trans_freq_earth * t + self.kap
+        b = 2 * np.pi * n / 3. + self.lam
+        e = self.e
+        e2 = e*e
+        x = np.cos(a) + \
+            0.5 * e * (np.cos(2*a-b) - 3*np.cos(b)) + \
+            0.125 * e2 * (3*np.cos(3*a-2*b) -
+                          10*np.cos(a) -
+                          5*np.cos(a-2*b))
+        y = np.sin(a) + \
+            0.5 * e * (np.sin(2*a-b) - 3*np.sin(b)) + \
+            0.125 * e2 * (3*np.sin(3*a-2*b) -
+                          10*np.sin(a) +
+                          5*np.sin(a-2*b))
+        z = np.sqrt(3.) * (-e * np.cos(a-b) +
+                           e2 * (1 + 2*np.sin(a-b)**2))
+        return self.R_AU * np.array([x, y, z])
+
+
+    def get_a(self, t):
+        t_use = np.atleast1d(t)
+        pos = self.pos_all(t_use)
+        np0 = (self.i_d + 0) % 2
+        np1 = (self.i_d + 1) % 2
+        np2 = (self.i_d + 2) % 2
+        xv = pos[np1] - pos[np0]
+        xl = np.sqrt(np.sum(xv, axis=0))
+        x = xv[:, :] / xl[None, :]
+        yv = pos[np2] - pos[np0]
+        yl = np.sqrt(np.sum(yv, axis=0))
+        y = yv[:, :] / yl[None, :]
+
+        if self.map_transfer:
+            raise NotImplementedError("Map-level transfer function not implemented")
+        else:
+            a = (x[:,None,...]*x[None,:,...]-y[:,None,...]*y[None,:,...])*0.5
+        return a

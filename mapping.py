@@ -46,7 +46,7 @@ class MapCalculator(object):
         ct, st, cp, sp = self._precompute_skyvec(theta, phi)
         return np.squeeze(self._get_baseline_product(t, ct, st, cp, sp))
 
-    def _get_gamma(self, t, ct, st, cp, sp, pol=False):
+    def _get_gamma(self, t, f, ct, st, cp, sp, pol=False):
         t_use = np.atleast_1d(t)
 
         # [3, 3, nt]
@@ -83,16 +83,16 @@ class MapCalculator(object):
 
         return g
 
-    def get_gamma(self, t, theta, phi, pol=False):
+    def get_gamma(self, t, f, theta, phi, pol=False):
         ct, st, cp, sp = self._precompute_skyvec(theta, phi)
-        return np.squeeze(self._get_gamma(t, ct, st, cp, sp, pol=pol))
+        return np.squeeze(self._get_gamma(t, f, ct, st, cp, sp, pol=pol))
 
-    def plot_gamma(self, t=0, n_theta=100, n_phi=100):
+    def plot_gamma(self, t, f, n_theta=100, n_phi=100):
         from mpl_toolkits.mplot3d import Axes3D
         phi = np.linspace(0, np.pi, n_phi)
         theta = np.linspace(0, 2*np.pi, n_theta)
         phi, theta = np.meshgrid(phi, theta)
-        gamma = np.fabs(self.get_gamma(0,
+        gamma = np.fabs(self.get_gamma(t, f,
                                        theta.flatten(),
                                        phi.flatten()).reshape([n_theta, n_phi]))
         x = gamma * np.sin(phi) * np.cos(theta)
@@ -119,7 +119,7 @@ class MapCalculator(object):
         ct, st, cp, sp = self._precompute_skyvec(th,ph)
 
         # [nt, npix]
-        gamma = self._get_gamma(t,ct,st,cp,sp)
+        gamma = self._get_gamma(t, f, ct, st, cp, sp)
         # [nt, npix]
         bn = self._get_baseline_product(t,ct,st,cp,sp)
 
