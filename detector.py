@@ -22,7 +22,10 @@ class Detector(object):
         # x is [3, nt]
         # f is [nf]
         # nv is [3, npix]
-        return np.ones([len(x[0]), len(f), len(nv[0])])
+        # output is [2, nt, nf, npix]
+        tr = np.ones([2, len(x[0]), len(f), len(nv[0])])
+        tr[1,:,:,:] = 0
+        return tr
 
     def get_xx_yy(self, t):
         x, y = self.get_x_y(t)
@@ -58,8 +61,9 @@ class Detector(object):
                          axis=(0,1))
         tr_yy_x = np.sum(yy[:,:,:,None] * e_x[:,:,None,:],
                          axis=(0,1))
-        Fp = 0.5*(tr_xx_p[:,None,:]*tf_x - tr_yy_p[:,None,:]*tf_y)
-        Fx = 0.5*(tr_xx_x[:,None,:]*tf_x - tr_yy_x[:,None,:]*tf_y)
+        # Output is [2, nt, nf, npix]
+        Fp = 0.5*(tr_xx_p[None,:,None,:]*tf_x - tr_yy_p[None,:,None,:]*tf_y)
+        Fx = 0.5*(tr_xx_x[None,:,None,:]*tf_x - tr_yy_x[None,:,None,:]*tf_y)
         return Fp, Fx
 
     def read_psd(self, fname):

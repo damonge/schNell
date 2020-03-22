@@ -61,19 +61,22 @@ class MapCalculator(object):
         # e_x [3, 3, npix]
         e_x = l[:,None,...]*m[None,:,...]+m[:,None,...]*l[None,:,...]
 
-        # [nt, nf, npix]
+        # [2, nt, nf, npix]
         tr_Ap, tr_Ax = self.det_A.get_Fp(t_use, f_use, e_p, e_x, n)
         tr_Bp, tr_Bx = self.det_B.get_Fp(t_use, f_use, e_p, e_x, n)
+
+        def tr_prod(tr1, tr2):
+            return np.sum(tr1 * tr2, axis=0)
 
         # Gammas
         prefac = 5/(8*np.pi)
         if pol:
-            g = prefac*np.array([tr_Ap*tr_Bp+tr_Ax*tr_Bx, # I
-                                 tr_Ap*tr_Bp-tr_Ax*tr_Bx, # Q
-                                 tr_Ap*tr_Bx+tr_Ax*tr_Bp, # U
-                                 1j*(tr_Ap*tr_Bx-tr_Ax*tr_Bp)]) # V
+            g = prefac*np.array([tr_prod(tr_Ap,tr_Bp)+tr_prod(tr_Ax,tr_Bx), # I
+                                 tr_prod(tr_Ap,tr_Bp)-tr_prod(tr_Ax,tr_Bx), # Q
+                                 tr_prod(tr_Ap,tr_Bx)+tr_prod(tr_Ax,tr_Bp), # U
+                                 1j*(tr_prod(tr_Ap,tr_Bx)-tr_prod(tr_Ax,tr_Bp))]) # V
         else:
-            g = prefac*(tr_Ap*tr_Bp+tr_Ax*tr_Bx)
+            g = prefac*(tr_prod(tr_Ap,tr_Bp)+tr_prod(tr_Ax,tr_Bx))
 
         return g
 
