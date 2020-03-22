@@ -40,12 +40,6 @@ class Detector(object):
         # xx/yy/a are [3, 3, nt]
         xx, yy = self._get_xx_yy_from_x_y(x, y)
 
-        # x.nv and y.nv, [nt, npix]
-        #x_dot_n = np.sum(x[:,:,None] * nv[:,None,:],
-        #                 axis=0)
-        #y_dot_n = np.sum(y[:,:,None] * nv[:,None,:],
-        #                 axis=0)
-
         # Transfer function
         # [nt, nf, npix]
         tf_x = self.get_transfer(x, f, nv)
@@ -135,6 +129,29 @@ class LISADetector(Detector):
         self.name = 'LISA'
         self.i_d = detector_id % 2
         self.map_transfer = map_transfer
+
+    def get_transfer(self, x, f, nv):
+        def sinc(x):
+            x_np = x / np.pi
+            return np.sinc(x_np)
+
+        # Eq. 48 in astro-ph/0105374
+        # xf = f/(2*fstar)/pi, fstar = c/(2*pi*L)
+        xf = self.L * f / self.clight
+
+        # x.nv is [nt, npix]
+        x_dot_n = np.sum(x[:,:,None] * nv[:,None,:],
+                         axis=0)
+        # For some reason Numpy's sinc is sin(pi*x) / (pi*x)
+        sinc1 = np.sinc(xf[None,:,None]*(1-x_dot_n[:,None,:]))
+        sinc2 = np.sinc(xf[None,:,None]*(1+x_dot_n[:,None,:]))
+        cos1 = np.cos((np.pi*xf)[None,:,None]*(3+x_dot_n[:,None,:]))
+        cos2 = np.cos((np.pi*xf)[None,:,None]*(1+x_dot_n[:,None,:]))
+        sin1 = np.sin((np.pi*xf)[None,:,None]*(3+x_dot_n[:,None,:]))
+        sin2 = np.sin((np.pi*xf)[None,:,None]*(1+x_dot_n[:,None,:]))
+        tr = np.array([0.5*(sinc1*cos1+sinc2*cos2),
+                       -0.5*(sinc1*sin1+sinc2*sin2)])
+        return tr
 
     def psd(self, nu):
         # Equation 1 from 1803.01944 (without background)
