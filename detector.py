@@ -118,19 +118,24 @@ class GroundDetector(Detector):
 class LISADetector(Detector):
     trans_freq_earth = 2 * np.pi / (365 * 24 * 3600)
     R_AU = 1.496E11
-    e = 0.00482419 # ellipticity (use this for 2.5 Gm arms)
-    #e = 0.00965 # ellipticity (use this for 5 Gm arms)
     kap = 0 # initial longitude
     lam = 0 # initial orientation
     clight = 299792458.
-    L = 2.5E9 # Arm length
     
-    def __init__(self, detector_id, map_transfer=False):
-        self.name = 'LISA'
-        self.i_d = detector_id % 2
+    def __init__(self, detector_id, is_L5Gm=False, map_transfer=False):
+        self.i_d = detector_id % 3
+        self.name = 'LISA_%d' % self.i_d
         self.map_transfer = map_transfer
+        if self.map_transfer:
+            self.get_transfer = self._get_transfer_LISA
+        if is_L5Gm: # 5 Gm arm length
+            self.L = 5E9
+            self.e = 0.00965
+        else:  # 2.5 Gm arm length
+            self.L = 2.5E9
+            self.e = 0.00482419
 
-    def get_transfer(self, x, f, nv):
+    def _get_transfer_LISA(self, x, f, nv):
         def sinc(x):
             x_np = x / np.pi
             return np.sinc(x_np)
@@ -199,16 +204,16 @@ class LISADetector(Detector):
 
 
     def get_x_y(self, t):
-        t_use = np.atleast1d(t)
+        t_use = np.atleast_1d(t)
         pos = self.pos_all(t_use)
-        np0 = (self.i_d + 0) % 2
-        np1 = (self.i_d + 1) % 2
-        np2 = (self.i_d + 2) % 2
+        np0 = (self.i_d + 0) % 3
+        np1 = (self.i_d + 1) % 3
+        np2 = (self.i_d + 2) % 3
         xv = pos[np1] - pos[np0]
-        xl = np.sqrt(np.sum(xv, axis=0))
+        xl = np.sqrt(np.sum(xv**2, axis=0))
         x = xv[:, :] / xl[None, :]
         yv = pos[np2] - pos[np0]
-        yl = np.sqrt(np.sum(yv, axis=0))
+        yl = np.sqrt(np.sum(yv**2, axis=0))
         y = yv[:, :] / yl[None, :]
 
         return x, y

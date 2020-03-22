@@ -1,10 +1,12 @@
 import numpy as np
+import healpy as hp
 from detector import LISADetector
+from mapping import MapCalculator
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
 import matplotlib.pyplot as plt
     
-det = LISADetector(0)
-det_b = LISADetector(0, map_transfer=True)
+det_b = LISADetector(0, map_transfer=False)
+det = LISADetector(0, map_transfer=True, is_L5Gm=True)
 fs = np.geomspace(1E-5, 1, 1024)
 
 plt.figure()
@@ -14,6 +16,14 @@ plt.loglog()
 plt.xlabel(r'$f\,[{\rm Hz}]$', fontsize=14)
 plt.ylabel(r'$\sqrt{S_n(f)}\,[{\rm Hz}^{-1/2}]$', fontsize=14)
 plt.savefig("psd.png", bbox_inches='tight')
+
+mc = MapCalculator(det, det, f_pivot=1E-2)
+
+nside=64
+theta, phi = hp.pix2ang(nside,np.arange(hp.nside2npix(nside)))
+for f in [1E-3, 1E-2, 5E-2, 0.1]:
+    gamma = mc.get_gamma(0, f, theta, phi)
+    hp.mollview(gamma, coord=['E','G'])
 
 t_arr = np.linspace(0, 365*24*3600, 1024)
 pos = det.pos_all(t_arr)
