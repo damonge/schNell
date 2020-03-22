@@ -24,7 +24,7 @@ mcals = {s1: {s2: MapCalculator(d1, d2)
          for s1, d1 in dets.items()}
 
 mcals['Dummy']['Dummy'].plot_gamma(0, 0)
-    
+
 nside=64
 theta, phi = hp.pix2ang(nside,np.arange(hp.nside2npix(nside)))
 
@@ -56,6 +56,7 @@ for f in freqs:
 nl *= obs_time * dfreq
 ls = np.arange(len(nl))
 nl = 1./nl
+np.savetxt("nls.txt", np.transpose([ls, nl]))
 plt.figure()
 plt.plot(ls, ls * (ls + 1.) * nl / (2 * np.pi), 'k--')
 plt.plot(ls, 4E-26 * ls ** (5. / 6.), 'r-')

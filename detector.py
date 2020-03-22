@@ -12,8 +12,55 @@ class Detector(object):
     def get_position(self, t):
         raise NotImplementedError("get_position not implemented")
 
+    def _get_xx_yy_from_x_y(self, x, y):
+        # [3, 3, nt]
+        xx = x[:,None,...]*x[None,:,...]
+        yy = y[:,None,...]*y[None,:,...]
+        return xx, yy
+
+    def get_transfer(self, x, f, nv):
+        # x is [3, nt]
+        # f is [nf]
+        # nv is [3, npix]
+        return np.ones([len(x[0]), len(f), len(nv[0])])
+
     def get_xx_yy(self, t):
-        raise NotImplementedError("get_xx_yy not implemented")
+        x, y = self.get_x_y(t)
+        return self._get_xx_yy_from_x_y(x, y)
+
+    def get_Fp(self, t, f, e_p, e_x, nv):
+        # e_p/e_x is [3, 3, npix]
+
+        # x/y are [3, nt]
+        x, y = self.get_x_y(t)
+
+        # xx/yy/a are [3, 3, nt]
+        xx, yy = self._get_xx_yy_from_x_y(x, y)
+
+        # x.nv and y.nv, [nt, npix]
+        #x_dot_n = np.sum(x[:,:,None] * nv[:,None,:],
+        #                 axis=0)
+        #y_dot_n = np.sum(y[:,:,None] * nv[:,None,:],
+        #                 axis=0)
+
+        # Transfer function
+        # [nt, nf, npix]
+        tf_x = self.get_transfer(x, f, nv)
+        tf_y = self.get_transfer(y, f, nv)
+
+        # Tr[xx * e_p] etc.
+        # [nt, npix]
+        tr_xx_p = np.sum(xx[:,:,:,None] * e_p[:,:,None,:],
+                         axis=(0,1))
+        tr_yy_p = np.sum(yy[:,:,:,None] * e_p[:,:,None,:],
+                         axis=(0,1))
+        tr_xx_x = np.sum(xx[:,:,:,None] * e_x[:,:,None,:],
+                         axis=(0,1))
+        tr_yy_x = np.sum(yy[:,:,:,None] * e_x[:,:,None,:],
+                         axis=(0,1))
+        Fp = 0.5*(tr_xx_p[:,None,:]*tf_x - tr_yy_p[:,None,:]*tf_y)
+        Fx = 0.5*(tr_xx_x[:,None,:]*tf_x - tr_yy_x[:,None,:]*tf_y)
+        return Fp, Fx
 
     def read_psd(self, fname):
         from scipy.interpolate import interp1d
@@ -25,7 +72,6 @@ class Detector(object):
     def psd(self, nu):
         return np.exp(2*self.lpsdf(np.log(nu)))
 
-    
 class GroundDetector(Detector):
     rot_freq_earth = 2*np.pi/(24*3600)
     earth_radius = 6.371E6 # in meters
@@ -54,7 +100,7 @@ class GroundDetector(Detector):
                                              self.st*sp,
                                              self.ct*o])
 
-    def get_xx_yy(self, t):
+    def get_x_y(self, t):
         phi = self.phi_e + self.rot_freq_earth * t
         cp = np.cos(phi)
         sp = np.sin(phi)
@@ -68,11 +114,7 @@ class GroundDetector(Detector):
         y = np.array([-self.cabp*cp*self.ct-self.sabp*sp,
                       self.sabp*cp-self.cabp*sp*self.ct,
                       self.cabp*self.st*o])
-
-        # [3, 3, nt]
-        xx = x[:,None,...]*x[None,:,...]
-        yy = y[:,None,...]*y[None,:,...]
-        return xx, yy
+        return x, y
 
 
 class LISADetector(Detector):
@@ -135,7 +177,7 @@ class LISADetector(Detector):
         return self.R_AU * np.array([x, y, z])
 
 
-    def get_xx_yy(self, t):
+    def get_x_y(self, t):
         t_use = np.atleast1d(t)
         pos = self.pos_all(t_use)
         np0 = (self.i_d + 0) % 2
@@ -148,6 +190,4 @@ class LISADetector(Detector):
         yl = np.sqrt(np.sum(yv, axis=0))
         y = yv[:, :] / yl[None, :]
 
-        xx = x[:,None,...]*x[None,:,...]
-        yy = y[:,None,...]*y[None,:,...]
-        return xx, yy
+        return x, y

@@ -48,30 +48,22 @@ class MapCalculator(object):
 
     def _get_gamma(self, t, f, ct, st, cp, sp, pol=False):
         t_use = np.atleast_1d(t)
-
-        # [3, 3, nt]
-        xx_A, yy_A = self.det_A.get_xx_yy(t_use)
-        a_A = 0.5 * (xx_A - yy_A)
-
-        # [3, 3, nt]
-        xx_B, yy_B = self.det_B.get_xx_yy(t_use)
-        a_B = 0.5 * (xx_B - yy_B)
+        f_use = np.atleast_1d(f)
 
         # [3, npix]
         l = np.array([sp,-cp,np.zeros_like(sp)])
         # [3, npix]
         m = np.array([cp*ct,sp*ct,-st])
+        # [3, npix]
+        n = np.array([st*cp,st*sp,ct])
         # e_+ [3, 3, npix]
         e_p = l[:,None,...]*l[None,:,...]-m[:,None,...]*m[None,:,...]
         # e_x [3, 3, npix]
         e_x = l[:,None,...]*m[None,:,...]+m[:,None,...]*l[None,:,...]
 
-        # Tr[a_A*e_+]
-        # [nt, npix]
-        tr_Ap = np.einsum('ijk,jil',a_A, e_p)
-        tr_Bp = np.einsum('ijk,jil',a_B, e_p)
-        tr_Ax = np.einsum('ijk,jil',a_A, e_x)
-        tr_Bx = np.einsum('ijk,jil',a_B, e_x)
+        # [nt, nf, npix]
+        tr_Ap, tr_Ax = self.det_A.get_Fp(t_use, f_use, e_p, e_x, n)
+        tr_Bp, tr_Bx = self.det_B.get_Fp(t_use, f_use, e_p, e_x, n)
 
         # Gammas
         prefac = 5/(8*np.pi)
@@ -120,7 +112,7 @@ class MapCalculator(object):
         th,ph=hp.pix2ang(nside,np.arange(npix))
         ct, st, cp, sp = self._precompute_skyvec(th,ph)
 
-        # [nt, npix]
+        # [nt, nf, npix]
         gamma = self._get_gamma(t, f, ct, st, cp, sp)
         # [nt, npix]
         bn = self._get_baseline_product(t,ct,st,cp,sp)
@@ -134,8 +126,8 @@ class MapCalculator(object):
         gls = np.zeros([nf, nt, nell])
         for i_t, time in enumerate(t_use):
             b = bn[i_t, :]
-            g = gamma[i_t, :]
             for i_f, freq in enumerate(f_use):
+                g = gamma[i_t, i_f, :]
                 phase = 2 * np.pi * freq * b / self.clight
                 # Power spectrum of the real part
                 g_r = hp.anafast(g * np.cos(phase))
