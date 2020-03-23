@@ -6,9 +6,10 @@ from detector import Detector, GroundDetector
 from mapping import MapCalculator
 
 
-dets = {'Dummy':       GroundDetector('Dummy',         0.,     0.,    0.,
-                                      'data/curves_May_2019/aligo_design.txt'),  # are these per-detector PSDs?
-        'Hanford':     GroundDetector('Hanford',     46.4, -119.4, 171.8,
+dum_det = GroundDetector('Dummy', 0, 0, 0,
+                         'data/curves_May_2019/aligo_design.txt')  # are these per-detector PSDs?
+
+dets = {'Hanford':     GroundDetector('Hanford',     46.4, -119.4, 171.8,
                                       'data/curves_May_2019/aligo_design.txt'),
         'Livingstone': GroundDetector('Livingstone', 30.7,  -90.8, 243.0,
                                       'data/curves_May_2019/aligo_design.txt'),
@@ -19,48 +20,48 @@ dets = {'Dummy':       GroundDetector('Dummy',         0.,     0.,    0.,
         'GEO600':      GroundDetector('GEO600',      48.0,    9.8,  68.8,
                                       'data/curves_May_2019/o1.txt')}
 
+mcal_dd = MapCalculator(dum_det, dum_det)
 mcals = {s1: {s2: MapCalculator(d1, d2)
               for s2, d2 in dets.items()}
          for s1, d1 in dets.items()}
 
-mcals['Dummy']['Dummy'].plot_gamma(0, 0)
+mcal_dd.plot_gamma(0, 0)
 
 nside=64
 theta, phi = hp.pix2ang(nside,np.arange(hp.nside2npix(nside)))
 
 names = list(dets.keys())
-for i1, s1 in enumerate(names):
-    for s2 in names[i1:]:
-        print(s1, s2, np.sum(mcals[s1][s2].get_gamma(0, 0, theta, phi)*4*np.pi/hp.nside2npix(nside)))
-        hp.mollview(mcals[s1][s2].get_gamma(0, 0, theta, phi), coord=['C','G'],
-                    title=r"$\gamma^I(\theta,\varphi),\,\,{\rm %s}-{\rm %s}$" % (s1, s2),
-                    notext=True)
+ind1, ind2 = np.triu_indices(len(names), k=0)
+for i1, i2 in zip(ind1, ind2):
+    s1 = names[i1]
+    s2 = names[i2]
+    print(s1, s2, np.sum(mcals[s1][s2].get_gamma(0, 0, theta, phi)*4*np.pi/hp.nside2npix(nside)))
+    #hp.mollview(mcals[s1][s2].get_gamma(0, 0, theta, phi), coord=['C','G'],
+    #            title=r"$\gamma^I(\theta,\varphi),\,\,{\rm %s}-{\rm %s}$" % (s1, s2),
+    #            notext=True)
 
-obs_time = 1000*365*24*3600.
-nl = np.zeros(3*nside)
+obs_time = 365*24*3600.
 freqs = np.linspace(10., 1010., 101)
 dfreq = np.mean(np.diff(freqs))
-for f in freqs:
-    print(f)
-    n = mcals['Hanford']['Livingstone'].get_G_ell(0, f, nside)
-    n += mcals['Hanford']['VIRGO'].get_G_ell(0, f, nside)
-    n += mcals['Hanford']['Kagra'].get_G_ell(0, f, nside)
-    n += mcals['Hanford']['GEO600'].get_G_ell(0, f, nside)
-    n += mcals['Livingstone']['VIRGO'].get_G_ell(0, f, nside)
-    n += mcals['Livingstone']['Kagra'].get_G_ell(0, f, nside)
-    n += mcals['Livingstone']['GEO600'].get_G_ell(0, f, nside)
-    n += mcals['VIRGO']['Kagra'].get_G_ell(0, f, nside)
-    n += mcals['VIRGO']['GEO600'].get_G_ell(0, f, nside)
-    n += mcals['Kagra']['GEO600'].get_G_ell(0, f, nside)
-    nl += n
-nl *= obs_time * dfreq
-ls = np.arange(len(nl))
-nl = 1./nl
+
+ls = np.arange(3*nside)
+nlt = np.zeros(3*nside)
+ind1, ind2 = np.triu_indices(len(names), k=1)
+plt.figure(figsize=(12,6))
+for i1, i2 in zip(ind1, ind2):
+    s1 = names[i1]
+    s2 = names[i2]
+    nl = np.sum(mcals[s1][s2].get_G_ell(0, freqs, nside), axis=0) * obs_time * dfreq
+    nlt += nl
+    print(s1, s2)
+    plt.plot(ls, ls * (ls + 1.) / (2 * np.pi * nl), '--', label='%s-%s'%(s1,s2))
+nlt = 1./nlt
 np.savetxt("nls.txt", np.transpose([ls, nl]))
-plt.figure()
-plt.plot(ls, ls * (ls + 1.) * nl / (2 * np.pi), 'k--')
-plt.plot(ls, 4E-26 * ls ** (5. / 6.), 'r-')
-plt.xlabel('$\\ell$', fontsize=16)
-plt.ylabel('$N_\\ell$', fontsize=16)
+plt.plot(ls, ls * (ls + 1.) * nlt / (2 * np.pi), 'k-', label='Total')
+plt.xlabel(r'$\ell$', fontsize=16)
+plt.ylabel(r'$\ell(\ell+1)N_\ell/2\pi$', fontsize=16)
 plt.loglog()
+plt.ylim([3E-21,1E-6])
+plt.legend(loc='upper left', ncol=2)
+plt.savefig("nls_ligo.pdf", bbox_inches='tight')
 plt.show()
