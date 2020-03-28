@@ -19,9 +19,8 @@ class Detector(object):
         # x is [3, nt]
         # f is [nf]
         # nv is [3, npix]
-        # output is [2, nt, nf, npix]
-        tr = np.ones([2, len(x[0]), len(f), len(nv[0])])
-        tr[1, :, :, :] = 0
+        # output is [nt, nf, npix]
+        tr = np.ones([len(x[0]), len(f), len(nv[0])]) + 0j
         return tr
 
     def get_xx_yy(self, t):
@@ -52,11 +51,11 @@ class Detector(object):
                          axis=(0, 1))
         tr_yy_x = np.sum(yy[:, :, :, None] * e_x[:, :, None, :],
                          axis=(0, 1))
-        # Output is [2, nt, nf, npix]
-        Fp = 0.5*(tr_xx_p[None, :, None, :]*tf_x -
-                  tr_yy_p[None, :, None, :]*tf_y)
-        Fx = 0.5*(tr_xx_x[None, :, None, :]*tf_x -
-                  tr_yy_x[None, :, None, :]*tf_y)
+        # Output is [nt, nf, npix]
+        Fp = 0.5*(tr_xx_p[:, None, :]*tf_x -
+                  tr_yy_p[:, None, :]*tf_y)
+        Fx = 0.5*(tr_xx_x[:, None, :]*tf_x -
+                  tr_yy_x[:, None, :]*tf_y)
         return Fp, Fx
 
     def read_psd(self, fname):
@@ -150,12 +149,10 @@ class LISADetector(Detector):
         # For some reason Numpy's sinc is sin(pi*x) / (pi*x)
         sinc1 = np.sinc(xf[None, :, None]*(1-x_dot_n[:, None, :]))
         sinc2 = np.sinc(xf[None, :, None]*(1+x_dot_n[:, None, :]))
-        cos1 = np.cos((np.pi*xf)[None, :, None]*(3+x_dot_n[:, None, :]))
-        cos2 = np.cos((np.pi*xf)[None, :, None]*(1+x_dot_n[:, None, :]))
-        sin1 = np.sin((np.pi*xf)[None, :, None]*(3+x_dot_n[:, None, :]))
-        sin2 = np.sin((np.pi*xf)[None, :, None]*(1+x_dot_n[:, None, :]))
-        tr = np.array([0.5*(sinc1*cos1+sinc2*cos2),
-                       -0.5*(sinc1*sin1+sinc2*sin2)])
+        phase1 = -(np.pi*xf)[None, :, None]*(3+x_dot_n[:, None, :])
+        phase2 = -(np.pi*xf)[None, :, None]*(1+x_dot_n[:, None, :])
+        tr = 0.5*(np.exp(1j*phase1)*sinc1 +
+                  np.exp(1j*phase2)*sinc2)
         return tr
 
     def psd(self, nu):

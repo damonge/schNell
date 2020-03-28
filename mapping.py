@@ -63,12 +63,12 @@ class MapCalculator(object):
         e_x = (ll[:, None, ...]*mm[None, :, ...] +
                mm[:, None, ...]*ll[None, :, ...])
 
-        # [2, nt, nf, npix]
+        # [nt, nf, npix]
         tr_Ap, tr_Ax = self.det_A.get_Fp(t_use, f_use, e_p, e_x, nn)
         tr_Bp, tr_Bx = self.det_B.get_Fp(t_use, f_use, e_p, e_x, nn)
 
         def tr_prod(tr1, tr2):
-            return np.sum(tr1 * tr2, axis=0)
+            return tr1 * np.conj(tr2)
 
         # Gammas
         prefac = 5/(8*np.pi)
@@ -139,12 +139,12 @@ class MapCalculator(object):
         for i_t, time in enumerate(t_use):
             b = bn[i_t, :]
             for i_f, freq in enumerate(f_use):
-                g = gamma[i_t, i_f, :]
-                phase = 2 * np.pi * freq * b / self.clight
+                phase = np.exp(1j*2*np.pi*freq*b/self.clight)
+                g = gamma[i_t, i_f, :] * phase
                 # Power spectrum of the real part
-                g_r = hp.anafast(g * np.cos(phase))
+                g_r = hp.anafast(np.real(g))
                 # Power spectrum of the imaginary part
-                g_i = hp.anafast(g * np.sin(phase))
+                g_i = hp.anafast(np.imag(g))
                 gls[i_f, i_t, :] = (g_r + g_i) * pre_A[i_f] * pre_B[i_f]
 
         return np.squeeze(gls)
