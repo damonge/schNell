@@ -4,7 +4,7 @@ from detector import LISADetector
 from mapping import MapCalculator
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
 import matplotlib.pyplot as plt
-    
+
 det_b = LISADetector(0, map_transfer=True, is_L5Gm=True)
 det_0 = LISADetector(0, map_transfer=True)
 det_0b = LISADetector(0, map_transfer=False)
@@ -47,31 +47,33 @@ plt.savefig("trajectories.png", bbox_inches='tight')
 
 # Antenna patterns (matching Fig. 3 of astro-ph/0105374)
 mc_b = MapCalculator(det_b, det_b, f_pivot=1E-2)
-nside=64
-theta, phi = hp.pix2ang(nside,np.arange(hp.nside2npix(nside)))
+nside = 64
+npix = hp.nside2npix(nside)
+theta, phi = hp.pix2ang(nside, np.arange(npix))
 for f in [1E-3, 1E-2, 5E-2, 0.1]:
     gamma = mc_b.get_gamma(0, f, theta, phi)
-    hp.mollview(gamma, coord=['E','G'], title=r'$\nu = %lf\,{\rm Hz}$' % f)
+    hp.mollview(gamma, coord=['E', 'G'],
+                title=r'$\nu = %lf\,{\rm Hz}$' % f)
 
 # Power spectra
 mc_00 = MapCalculator(det_0, det_0, f_pivot=1E-2)
 mc_01 = MapCalculator(det_0, det_1, f_pivot=1E-2)
 
-nside=32
+nside = 32
 lfreqs = np.linspace(-4, 0, 101)
 dlfreq = np.mean(np.diff(lfreqs))
 freqs = 10.**lfreqs
 dfreqs = dlfreq * np.log(10.) * freqs
 obs_time = 365 * 24 * 3600
 ls = np.arange(3*nside)
-nl_00 = 1./(np.sum(mc_00.get_G_ell(0, freqs, nside) * dfreqs[:, None], axis=0) * obs_time)
-nl_01 = 1./(np.sum(mc_01.get_G_ell(0, freqs, nside) * dfreqs[:, None], axis=0) * obs_time)
+nl_00 = 1./(np.sum(mc_00.get_G_ell(0, freqs, nside) * dfreqs[:, None],
+                   axis=0) * obs_time)
+nl_01 = 1./(np.sum(mc_01.get_G_ell(0, freqs, nside) * dfreqs[:, None],
+                   axis=0) * obs_time)
 
 plt.figure()
 plt.plot(ls[::2], (ls*(ls+1)*nl_00/(2*np.pi))[::2], 'ro-', label='Auto')
-#plt.plot(ls[1::2], (ls*(ls+1)*nl_00/(2*np.pi))[1::2], 'r.')
 plt.plot(ls[::2], (ls*(ls+1)*nl_01/(2*np.pi))[::2], 'ko-', label='Cross')
-#plt.plot(ls[1::2], (ls*(ls+1)*nl_01/(2*np.pi))[1::2], 'k.')
 plt.xlim([1, 60])
 plt.xlabel(r'$\ell$', fontsize=16)
 plt.ylabel(r'$\ell(\ell+1)N_\ell/2\pi$', fontsize=16)

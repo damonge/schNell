@@ -1,13 +1,13 @@
 import healpy as hp
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib import cm
-from detector import Detector, GroundDetector
+from detector import GroundDetector
 from mapping import MapCalculator
 
 
 dum_det = GroundDetector('Dummy', 0, 0, 0,
-                         'data/curves_May_2019/aligo_design.txt')  # are these per-detector PSDs?
+                         'data/curves_May_2019/aligo_design.txt')
+# are these per-detector PSDs?
 
 dets = {'Hanford':     GroundDetector('Hanford',     46.4, -119.4, 171.8,
                                       'data/curves_May_2019/aligo_design.txt'),
@@ -27,18 +27,18 @@ mcals = {s1: {s2: MapCalculator(d1, d2)
 
 mcal_dd.plot_gamma(0, 0)
 
-nside=64
-theta, phi = hp.pix2ang(nside,np.arange(hp.nside2npix(nside)))
+nside = 64
+npix = hp.nside2npix(nside)
+pix_area = 4*np.pi/npix
+theta, phi = hp.pix2ang(nside, np.arange(npix))
 
 names = list(dets.keys())
 ind1, ind2 = np.triu_indices(len(names), k=0)
 for i1, i2 in zip(ind1, ind2):
     s1 = names[i1]
     s2 = names[i2]
-    print(s1, s2, np.sum(mcals[s1][s2].get_gamma(0, 0, theta, phi)*4*np.pi/hp.nside2npix(nside)))
-    #hp.mollview(mcals[s1][s2].get_gamma(0, 0, theta, phi), coord=['C','G'],
-    #            title=r"$\gamma^I(\theta,\varphi),\,\,{\rm %s}-{\rm %s}$" % (s1, s2),
-    #            notext=True)
+    print(s1, s2,
+          np.sum(mcals[s1][s2].get_gamma(0, 0, theta, phi)*pix_area))
 
 obs_time = 365*24*3600.
 freqs = np.linspace(10., 1010., 101)
@@ -47,21 +47,23 @@ dfreq = np.mean(np.diff(freqs))
 ls = np.arange(3*nside)
 nlt = np.zeros(3*nside)
 ind1, ind2 = np.triu_indices(len(names), k=1)
-plt.figure(figsize=(12,6))
+plt.figure(figsize=(12, 6))
 for i1, i2 in zip(ind1, ind2):
     s1 = names[i1]
     s2 = names[i2]
-    nl = np.sum(mcals[s1][s2].get_G_ell(0, freqs, nside), axis=0) * obs_time * dfreq
+    nl = np.sum(mcals[s1][s2].get_G_ell(0, freqs, nside),
+                axis=0) * obs_time * dfreq
     nlt += nl
     print(s1, s2)
-    plt.plot(ls, ls * (ls + 1.) / (2 * np.pi * nl), '--', label='%s-%s'%(s1,s2))
+    plt.plot(ls, ls*(ls+1.)/(2*np.pi*nl), '--',
+             label='%s-%s' % (s1, s2))
 nlt = 1./nlt
 np.savetxt("nls.txt", np.transpose([ls, nl]))
 plt.plot(ls, ls * (ls + 1.) * nlt / (2 * np.pi), 'k-', label='Total')
 plt.xlabel(r'$\ell$', fontsize=16)
 plt.ylabel(r'$\ell(\ell+1)N_\ell/2\pi$', fontsize=16)
 plt.loglog()
-plt.ylim([3E-21,1E-6])
+plt.ylim([3E-21, 1E-6])
 plt.legend(loc='upper left', ncol=2)
 plt.savefig("nls_ligo.pdf", bbox_inches='tight')
 plt.show()

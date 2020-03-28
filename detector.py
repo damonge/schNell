@@ -1,7 +1,4 @@
-import healpy as hp
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib import cm
 
 
 class Detector(object):
@@ -14,8 +11,8 @@ class Detector(object):
 
     def _get_xx_yy_from_x_y(self, x, y):
         # [3, 3, nt]
-        xx = x[:,None,...]*x[None,:,...]
-        yy = y[:,None,...]*y[None,:,...]
+        xx = x[:, None, ...]*x[None, :, ...]
+        yy = y[:, None, ...]*y[None, :, ...]
         return xx, yy
 
     def get_transfer(self, x, f, nv):
@@ -24,7 +21,7 @@ class Detector(object):
         # nv is [3, npix]
         # output is [2, nt, nf, npix]
         tr = np.ones([2, len(x[0]), len(f), len(nv[0])])
-        tr[1,:,:,:] = 0
+        tr[1, :, :, :] = 0
         return tr
 
     def get_xx_yy(self, t):
@@ -47,32 +44,35 @@ class Detector(object):
 
         # Tr[xx * e_p] etc.
         # [nt, npix]
-        tr_xx_p = np.sum(xx[:,:,:,None] * e_p[:,:,None,:],
-                         axis=(0,1))
-        tr_yy_p = np.sum(yy[:,:,:,None] * e_p[:,:,None,:],
-                         axis=(0,1))
-        tr_xx_x = np.sum(xx[:,:,:,None] * e_x[:,:,None,:],
-                         axis=(0,1))
-        tr_yy_x = np.sum(yy[:,:,:,None] * e_x[:,:,None,:],
-                         axis=(0,1))
+        tr_xx_p = np.sum(xx[:, :, :, None] * e_p[:, :, None, :],
+                         axis=(0, 1))
+        tr_yy_p = np.sum(yy[:, :, :, None] * e_p[:, :, None, :],
+                         axis=(0, 1))
+        tr_xx_x = np.sum(xx[:, :, :, None] * e_x[:, :, None, :],
+                         axis=(0, 1))
+        tr_yy_x = np.sum(yy[:, :, :, None] * e_x[:, :, None, :],
+                         axis=(0, 1))
         # Output is [2, nt, nf, npix]
-        Fp = 0.5*(tr_xx_p[None,:,None,:]*tf_x - tr_yy_p[None,:,None,:]*tf_y)
-        Fx = 0.5*(tr_xx_x[None,:,None,:]*tf_x - tr_yy_x[None,:,None,:]*tf_y)
+        Fp = 0.5*(tr_xx_p[None, :, None, :]*tf_x -
+                  tr_yy_p[None, :, None, :]*tf_y)
+        Fx = 0.5*(tr_xx_x[None, :, None, :]*tf_x -
+                  tr_yy_x[None, :, None, :]*tf_y)
         return Fp, Fx
 
     def read_psd(self, fname):
         from scipy.interpolate import interp1d
         nu, fnu = np.loadtxt(fname, unpack=True)
-        self.lpsdf = interp1d(np.log(nu),np.log(fnu),
+        self.lpsdf = interp1d(np.log(nu), np.log(fnu),
                               bounds_error=False,
                               fill_value=15)
 
     def psd(self, nu):
         return np.exp(2*self.lpsdf(np.log(nu)))
 
+
 class GroundDetector(Detector):
     rot_freq_earth = 2*np.pi/(24*3600)
-    earth_radius = 6.371E6 # in meters
+    earth_radius = 6.371E6  # in meters
 
     def __init__(self, name, lat, lon, alpha, fname_psd, aperture=90):
         # Translate between Renzini's alpha and mine
@@ -118,17 +118,17 @@ class GroundDetector(Detector):
 class LISADetector(Detector):
     trans_freq_earth = 2 * np.pi / (365 * 24 * 3600)
     R_AU = 1.496E11
-    kap = 0 # initial longitude
-    lam = 0 # initial orientation
+    kap = 0  # initial longitude
+    lam = 0  # initial orientation
     clight = 299792458.
-    
+
     def __init__(self, detector_id, is_L5Gm=False, map_transfer=False):
         self.i_d = detector_id % 3
         self.name = 'LISA_%d' % self.i_d
         self.map_transfer = map_transfer
         if self.map_transfer:
             self.get_transfer = self._get_transfer_LISA
-        if is_L5Gm: # 5 Gm arm length
+        if is_L5Gm:  # 5 Gm arm length
             self.L = 5E9
             self.e = 0.00965
         else:  # 2.5 Gm arm length
@@ -145,36 +145,36 @@ class LISADetector(Detector):
         xf = self.L * f / self.clight
 
         # x.nv is [nt, npix]
-        x_dot_n = np.sum(x[:,:,None] * nv[:,None,:],
+        x_dot_n = np.sum(x[:, :, None] * nv[:, None, :],
                          axis=0)
         # For some reason Numpy's sinc is sin(pi*x) / (pi*x)
-        sinc1 = np.sinc(xf[None,:,None]*(1-x_dot_n[:,None,:]))
-        sinc2 = np.sinc(xf[None,:,None]*(1+x_dot_n[:,None,:]))
-        cos1 = np.cos((np.pi*xf)[None,:,None]*(3+x_dot_n[:,None,:]))
-        cos2 = np.cos((np.pi*xf)[None,:,None]*(1+x_dot_n[:,None,:]))
-        sin1 = np.sin((np.pi*xf)[None,:,None]*(3+x_dot_n[:,None,:]))
-        sin2 = np.sin((np.pi*xf)[None,:,None]*(1+x_dot_n[:,None,:]))
+        sinc1 = np.sinc(xf[None, :, None]*(1-x_dot_n[:, None, :]))
+        sinc2 = np.sinc(xf[None, :, None]*(1+x_dot_n[:, None, :]))
+        cos1 = np.cos((np.pi*xf)[None, :, None]*(3+x_dot_n[:, None, :]))
+        cos2 = np.cos((np.pi*xf)[None, :, None]*(1+x_dot_n[:, None, :]))
+        sin1 = np.sin((np.pi*xf)[None, :, None]*(3+x_dot_n[:, None, :]))
+        sin2 = np.sin((np.pi*xf)[None, :, None]*(1+x_dot_n[:, None, :]))
         tr = np.array([0.5*(sinc1*cos1+sinc2*cos2),
                        -0.5*(sinc1*sin1+sinc2*sin2)])
         return tr
 
     def psd(self, nu):
         # Equation 1 from 1803.01944 (without background)
-        # TODO: do these curves assume that you already have 2 independent detectors?
+        # TODO: do these curves assume that you already have
+        # 2 independent detectors?
         fstar = self.clight / (2 * np.pi * self.L)
         Poms = (1.5E-11)**2*(1+(2E-3/nu)**4)
         Pacc = (3E-15)**2 * (1 + (4E-4/nu)**2)*(1+(nu/8E-3)**4)
-        Pn = Poms + \
-             2 * (1 + np.cos(nu / fstar)**2) * Pacc / (2 * np.pi * nu)**4
-        Pn /= self.L**2
+        Pn = (Poms+2*(1+np.cos(nu/fstar)**2)*Pacc/(2*np.pi*nu)**4) / self.L**2
 
         if self.map_transfer:
             return Pn
         else:
-            # TODO: check prefactor. I think it already accounts for the 60deg aperture.
-            Rinv = 10 * (1 +0.6 * (nu / fstar)**2) / 3
+            # TODO: check prefactor. I think it already accounts
+            # for the 60deg aperture.
+            Rinv = 10 * (1 + 0.6 * (nu / fstar)**2) / 3
             return Pn * Rinv
-        
+
     def get_position(self, t):
         return self.pos_single(t, self.i_d)
 
@@ -201,7 +201,6 @@ class LISADetector(Detector):
         z = np.sqrt(3.) * (-e * np.cos(a-b) +
                            e2 * (1 + 2*np.sin(a-b)**2))
         return self.R_AU * np.array([x, y, z])
-
 
     def get_x_y(self, t):
         t_use = np.atleast_1d(t)
