@@ -38,7 +38,8 @@ for i1, i2 in zip(ind1, ind2):
     s1 = names[i1]
     s2 = names[i2]
     print(s1, s2,
-          np.sum(mcals[s1][s2].get_gamma(0, 0, theta, phi)*pix_area))
+          np.sum(np.real(mcals[s1][s2].get_gamma(0, 0, theta, phi,
+                                                 inc_baseline=False)*pix_area)))
 
 obs_time = 365*24*3600.
 freqs = np.linspace(10., 1010., 101)

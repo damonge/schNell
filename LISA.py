@@ -51,7 +51,7 @@ nside = 64
 npix = hp.nside2npix(nside)
 theta, phi = hp.pix2ang(nside, np.arange(npix))
 for f in [1E-3, 1E-2, 5E-2, 0.1]:
-    gamma = mc_b.get_gamma(0, f, theta, phi)
+    gamma = np.abs(mc_b.get_gamma(0, f, theta, phi, inc_baseline=False))
     hp.mollview(gamma, coord=['E', 'G'],
                 title=r'$\nu = %lf\,{\rm Hz}$' % f)
 

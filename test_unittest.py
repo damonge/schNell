@@ -23,9 +23,9 @@ theta, phi = hp.pix2ang(nside, np.arange(hp.nside2npix(nside)))
 
 
 def test_gamma():
-    g11 = np.real(mc11.get_gamma(0, 0, theta, phi))
-    g12 = np.real(mc12.get_gamma(0, 0, theta, phi))
-    gLL = np.abs(mcLL.get_gamma(0, 1E-2, theta, phi))
+    g11 = np.real(mc11.get_gamma(0, 0, theta, phi, inc_baseline=False))
+    g12 = np.real(mc12.get_gamma(0, 0, theta, phi, inc_baseline=False))
+    gLL = np.abs(mcLL.get_gamma(0, 1E-2, theta, phi, inc_baseline=False))
     g11_test, g12_test, gLL_test = hp.read_map("test_data/gamma_test.fits",
                                                field=None)
     assert np.all(np.fabs(g11-g11_test) < 1E-5)

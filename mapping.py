@@ -46,7 +46,8 @@ class MapCalculator(object):
         ct, st, cp, sp = self._precompute_skyvec(theta, phi)
         return np.squeeze(self._get_baseline_product(t, ct, st, cp, sp))
 
-    def _get_gamma(self, t, f, ct, st, cp, sp, pol=False):
+    def _get_gamma(self, t, f, ct, st, cp, sp, pol=False,
+                   inc_baseline=True):
         t_use = np.atleast_1d(t)
         f_use = np.atleast_1d(f)
 
@@ -85,11 +86,24 @@ class MapCalculator(object):
             g = prefac*(tr_prod(tr_Ap, tr_Bp) +
                         tr_prod(tr_Ax, tr_Bx))
 
+        if inc_baseline:
+            # [nt, npix]
+            bn = self._get_baseline_product(t_use, ct, st, cp, sp)
+            # [nt, nf, npix]
+            phase = np.exp(1j*2*np.pi *
+                           f_use[None, :, None] *
+                           bn[:, None, :] / self.clight)
+            if pol:
+                g = g * phase[None, ...]
+            else:
+                g = g * phase
         return g
 
-    def get_gamma(self, t, f, theta, phi, pol=False):
+    def get_gamma(self, t, f, theta, phi, pol=False, inc_baseline=True):
         ct, st, cp, sp = self._precompute_skyvec(theta, phi)
-        return np.squeeze(self._get_gamma(t, f, ct, st, cp, sp, pol=pol))
+        return np.squeeze(self._get_gamma(t, f, ct, st, cp, sp,
+                                          pol=pol,
+                                          inc_baseline=inc_baseline))
 
     def plot_gamma(self, t, f, n_theta=100, n_phi=100):
         from mpl_toolkits.mplot3d import Axes3D
@@ -98,8 +112,9 @@ class MapCalculator(object):
         phi, theta = np.meshgrid(phi, theta)
         gamma = self.get_gamma(t, f,
                                theta.flatten(),
-                               phi.flatten())
-        gamma = np.fabs(gamma.reshape([n_theta, n_phi]))
+                               phi.flatten(),
+                               inc_baseline=False)
+        gamma = np.abs(gamma.reshape([n_theta, n_phi]))
         x = gamma * np.sin(phi) * np.cos(theta)
         y = gamma * np.sin(phi) * np.sin(theta)
         z = gamma * np.cos(phi)
@@ -125,9 +140,8 @@ class MapCalculator(object):
         ct, st, cp, sp = self._precompute_skyvec(th, ph)
 
         # [nt, nf, npix]
-        gamma = self._get_gamma(t, f, ct, st, cp, sp)
-        # [nt, npix]
-        bn = self._get_baseline_product(t, ct, st, cp, sp)
+        gamma = self._get_gamma(t_use, f_use, ct, st, cp, sp,
+                                inc_baseline=True)
 
         s_A = self.det_A.psd(f_use)
         s_B = self.det_B.psd(f_use)
@@ -137,10 +151,8 @@ class MapCalculator(object):
 
         gls = np.zeros([nf, nt, nell])
         for i_t, time in enumerate(t_use):
-            b = bn[i_t, :]
             for i_f, freq in enumerate(f_use):
-                phase = np.exp(1j*2*np.pi*freq*b/self.clight)
-                g = gamma[i_t, i_f, :] * phase
+                g = gamma[i_t, i_f, :]
                 # Power spectrum of the real part
                 g_r = hp.anafast(np.real(g))
                 # Power spectrum of the imaginary part
