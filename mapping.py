@@ -47,7 +47,51 @@ class MapCalculator(object):
         return np.squeeze(self._get_baseline_product(t, ct, st, cp, sp))
 
     def _get_gamma(self, t, f, ct, st, cp, sp, pol=False,
-                   inc_baseline=True):
+                   inc_baseline=True, typ='A,B'):
+        if typ == 'A,B':
+            g = self._get_gamma_single(t, f, ct, st, cp, sp,
+                                       pol=pol,
+                                       inc_baseline=inc_baseline,
+                                       dA=None, dB=None)
+        elif typ == 'I,I':
+            g = self._get_gamma_single(t, f, ct, st, cp, sp,
+                                       pol=pol,
+                                       inc_baseline=inc_baseline,
+                                       dA=self.det_A, dB=self.det_A)
+        else:
+            gAA = self._get_gamma_single(t, f, ct, st, cp, sp,
+                                         pol=pol,
+                                         inc_baseline=inc_baseline,
+                                         dA=self.det_A, dB=self.det_A)
+            gAB = self._get_gamma_single(t, f, ct, st, cp, sp,
+                                         pol=pol,
+                                         inc_baseline=inc_baseline,
+                                         dA=self.det_A, dB=self.det_B)
+            if typ == 'I,II':
+                g = (gAA + 2*gAB) / np.sqrt(3)
+            else:
+                gBB = self._get_gamma_single(t, f, ct, st, cp, sp,
+                                             pol=pol,
+                                             inc_baseline=inc_baseline,
+                                             dA=self.det_B, dB=self.det_B)
+                if typ == 'II,II':
+                    g = (gAA + 4*gBB + 4*np.real(gAB)) / 3.
+                elif typ == '+,+':
+                    g = 0.5*(gAA + gBB + 2*np.real(gAB))
+                elif typ == '-,-':
+                    g = 0.5*(gAA + gBB - 2*np.real(gAB))
+                elif typ == '+,-':
+                    g = 0.5*(gAA - gBB - 2*1j*np.imag(gAB))
+                else:
+                    raise ValueError("Unknown gamma type " + typ)
+        return g
+
+    def _get_gamma_single(self, t, f, ct, st, cp, sp, pol=False,
+                          inc_baseline=True, dA=None, dB=None):
+        if dA is None:
+            dA = self.det_A
+        if dB is None:
+            dB = self.det_B
         t_use = np.atleast_1d(t)
         f_use = np.atleast_1d(f)
 
@@ -65,8 +109,8 @@ class MapCalculator(object):
                mm[:, None, ...]*ll[None, :, ...])
 
         # [nt, nf, npix]
-        tr_Ap, tr_Ax = self.det_A.get_Fp(t_use, f_use, e_p, e_x, nn)
-        tr_Bp, tr_Bx = self.det_B.get_Fp(t_use, f_use, e_p, e_x, nn)
+        tr_Ap, tr_Ax = dA.get_Fp(t_use, f_use, e_p, e_x, nn)
+        tr_Bp, tr_Bx = dB.get_Fp(t_use, f_use, e_p, e_x, nn)
 
         def tr_prod(tr1, tr2):
             return tr1 * np.conj(tr2)
@@ -99,13 +143,14 @@ class MapCalculator(object):
                 g = g * phase
         return g
 
-    def get_gamma(self, t, f, theta, phi, pol=False, inc_baseline=True):
+    def get_gamma(self, t, f, theta, phi, pol=False,
+                  inc_baseline=True, typ='A,B'):
         ct, st, cp, sp = self._precompute_skyvec(theta, phi)
         return np.squeeze(self._get_gamma(t, f, ct, st, cp, sp,
-                                          pol=pol,
+                                          pol=pol, typ=typ,
                                           inc_baseline=inc_baseline))
 
-    def plot_gamma(self, t, f, n_theta=100, n_phi=100):
+    def plot_gamma(self, t, f, n_theta=100, n_phi=100, typ='A,B'):
         from mpl_toolkits.mplot3d import Axes3D
         phi = np.linspace(0, np.pi, n_phi)
         theta = np.linspace(0, 2*np.pi, n_theta)
@@ -113,7 +158,8 @@ class MapCalculator(object):
         gamma = self.get_gamma(t, f,
                                theta.flatten(),
                                phi.flatten(),
-                               inc_baseline=False)
+                               inc_baseline=False,
+                               typ=typ)
         gamma = np.abs(gamma.reshape([n_theta, n_phi]))
         x = gamma * np.sin(phi) * np.cos(theta)
         y = gamma * np.sin(phi) * np.sin(theta)
@@ -127,7 +173,7 @@ class MapCalculator(object):
                         facecolors=cm.seismic(fcolors))
         ax.set_axis_off()
 
-    def get_G_ell(self, t, f, nside):
+    def get_G_ell(self, t, f, nside, typ='A,B'):
         t_use = np.atleast_1d(t)
         f_use = np.atleast_1d(f)
 
@@ -141,7 +187,7 @@ class MapCalculator(object):
 
         # [nt, nf, npix]
         gamma = self._get_gamma(t_use, f_use, ct, st, cp, sp,
-                                inc_baseline=True)
+                                inc_baseline=True, typ=typ)
 
         s_A = self.det_A.psd(f_use)
         s_B = self.det_B.psd(f_use)
