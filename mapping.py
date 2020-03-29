@@ -28,12 +28,17 @@ class MapCalculator(object):
         sp = np.sin(phi_use)
         return ct, st, cp, sp
 
-    def _get_baseline_product(self, t, ct, st, cp, sp):
+    def _get_baseline_product(self, t, ct, st, cp, sp,
+                              dA=None, dB=None):
+        if dA is None:
+            dA = self.det_A
+        if dB is None:
+            dB = self.det_B
         t_use = np.atleast_1d(t)
 
         # [3, nt]
-        x_A = self.det_A.get_position(t_use)
-        x_B = self.det_B.get_position(t_use)
+        x_A = dA.get_position(t_use)
+        x_B = dB.get_position(t_use)
 
         # [3, npix]
         nv = np.array([st*cp, st*sp, ct])
@@ -42,9 +47,10 @@ class MapCalculator(object):
         bprod = np.einsum('ik,il', x_A-x_B, nv)
         return bprod
 
-    def get_baseline_product(self, t, theta, phi):
+    def get_baseline_product(self, t, theta, phi, dA=None, dB=None):
         ct, st, cp, sp = self._precompute_skyvec(theta, phi)
-        return np.squeeze(self._get_baseline_product(t, ct, st, cp, sp))
+        return np.squeeze(self._get_baseline_product(t, ct, st, cp, sp,
+                                                     dA=dA, dB=dB))
 
     def _get_gamma(self, t, f, ct, st, cp, sp, pol=False,
                    inc_baseline=True, typ='A,B'):
@@ -132,7 +138,8 @@ class MapCalculator(object):
 
         if inc_baseline:
             # [nt, npix]
-            bn = self._get_baseline_product(t_use, ct, st, cp, sp)
+            bn = self._get_baseline_product(t_use, ct, st, cp, sp,
+                                            dA=dA, dB=dB)
             # [nt, nf, npix]
             phase = np.exp(1j*2*np.pi *
                            f_use[None, :, None] *
@@ -195,6 +202,29 @@ class MapCalculator(object):
         pre_A = 8 * np.pi * e_f / (5 * s_A)
         pre_B = 8 * np.pi * e_f / (5 * s_B)
 
+        # Noise prefactor for special detector combinations
+        if typ == 'A,B':
+            if self.det_A.name == self.det_B.name:
+                # Extra factor 2 if auto-correlation
+                nprefac = 0.5
+            else:
+                nprefac = 1
+        elif (typ == 'I,I' ) or (typ == 'II,II'):
+            nprefac = 0.5
+        elif typ == 'I,II':
+              nprefac = 1
+        elif typ == '+,+':
+            # 0.5 for auto-correlation, 1/0.5 for each + combination
+            nprefac = 0.5 * 2**2
+        elif typ == '-,-':
+            # 0.5 for auto-correlation, 1/1.5 for each - combination
+            nprefac = 0.5 * (2./3.)**2
+        elif typ == '+,-':
+            # 1/0.5 for +, 1/1.5 for -
+            nprefac = 4./3.
+        else:
+            raise ValueError("Unknown gamma type " + typ)
+
         gls = np.zeros([nf, nt, nell])
         for i_t, time in enumerate(t_use):
             for i_f, freq in enumerate(f_use):
@@ -205,4 +235,4 @@ class MapCalculator(object):
                 g_i = hp.anafast(np.imag(g))
                 gls[i_f, i_t, :] = (g_r + g_i) * pre_A[i_f] * pre_B[i_f]
 
-        return np.squeeze(gls)
+        return nprefac * np.squeeze(gls)

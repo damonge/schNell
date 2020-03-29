@@ -34,9 +34,11 @@ def test_gamma():
 
 
 def test_Gell():
-    gl11 = mc11.get_G_ell(0, 100., nside)
+    # The factor 2 here corrects for a pevious missing factor
+    # for auto-correlations.
+    gl11 = mc11.get_G_ell(0, 100., nside) * 2
     gl12 = mc12.get_G_ell(0, 100., nside)
-    glLL = mcLL.get_G_ell(0, 1E-2, nside)
+    glLL = mcLL.get_G_ell(0, 1E-2, nside) * 2
     ls, gl11_test, gl12_test, glLL_test = np.loadtxt("test_data/gls_test.txt",
                                                      unpack=True)
     assert np.all(np.fabs(gl11-gl11_test) < 1E-8)
