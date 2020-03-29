@@ -209,10 +209,10 @@ class MapCalculator(object):
                 nprefac = 0.5
             else:
                 nprefac = 1
-        elif (typ == 'I,I' ) or (typ == 'II,II'):
+        elif (typ == 'I,I') or (typ == 'II,II'):
             nprefac = 0.5
         elif typ == 'I,II':
-              nprefac = 1
+            nprefac = 1
         elif typ == '+,+':
             # 0.5 for auto-correlation, 1/0.5 for each + combination
             nprefac = 0.5 * 2**2
