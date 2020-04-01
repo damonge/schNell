@@ -13,6 +13,9 @@ f_ref = 1E-2
 #    N_ell will be provided up to ell=3*nside
 nside = 32
 
+########################################
+# PROBABLY NO NEED TO TOUCH ANY OF THIS
+#
 # Initialize detectors
 det_0 = LISADetector(0, map_transfer=True)
 det_1 = LISADetector(1, map_transfer=True)
@@ -24,6 +27,8 @@ dlfreq = np.mean(np.diff(lfreqs))
 freqs = 10.**lfreqs
 dfreqs = dlfreq * np.log(10.) * freqs
 obs_time = t_obs * 365 * 24 * 3600
+#
+########################################
 
 
 # This function will give you the inverse noise power spectrum
