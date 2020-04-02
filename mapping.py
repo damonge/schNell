@@ -180,6 +180,57 @@ class MapCalculator(object):
                         facecolors=cm.seismic(fcolors))
         ax.set_axis_off()
 
+    def get_Ninv_t(self, t, f, nside, typ='A,B', is_fspacing_log=False):
+        t_use = np.atleast_1d(t)
+        f_use = f
+        if is_fspacing_log:
+            dlf = np.mean(np.diff(np.log(f)))
+            df = f * dlf
+        else:
+            df = np.mean(np.diff(f)) * np.ones(len(f))
+
+        npix = hp.nside2npix(nside)
+        th, ph = hp.pix2ang(nside, np.arange(npix))
+        ct, st, cp, sp = self._precompute_skyvec(th, ph)
+
+        # [nt, nf, npix]
+        gamma = self._get_gamma(t_use, f_use, ct, st, cp, sp,
+                                inc_baseline=True, typ=typ)
+
+        s_A = self.det_A.psd(f_use)
+        s_B = self.det_B.psd(f_use)
+        e_f = (f_use / self.f_pivot)**self.specin_omega / self.norm_pivot()
+        pre_A = 8 * np.pi * e_f / (5 * s_A)
+        pre_B = 8 * np.pi * e_f / (5 * s_B)
+
+        # Noise prefactor for special detector combinations
+        if typ == 'A,B':
+            if self.det_A.name == self.det_B.name:
+                # Extra factor 2 if auto-correlation
+                nprefac = 0.5
+            else:
+                nprefac = 1
+        elif (typ == 'I,I') or (typ == 'II,II'):
+            nprefac = 0.5
+        elif typ == 'I,II':
+            nprefac = 1
+        elif typ == '+,+':
+            # 0.5 for auto-correlation, 1/0.5 for each + combination
+            nprefac = 0.5 * 2**2
+        elif typ == '-,-':
+            # 0.5 for auto-correlation, 1/1.5 for each - combination
+            nprefac = 0.5 * (2./3.)**2
+        elif typ == '+,-':
+            # 1/0.5 for +, 1/1.5 for -
+            nprefac = 4./3.
+        else:
+            raise ValueError("Unknown gamma type " + typ)
+
+        # Integrate over frequencies
+        inoivar = np.sum(((nprefac * pre_A * pre_B * df)[None, :, None] *
+                          np.abs(gamma)**2), axis=1)
+        return np.squeeze(inoivar)
+
     def get_G_ell(self, t, f, nside, typ='A,B'):
         t_use = np.atleast_1d(t)
         f_use = np.atleast_1d(f)
