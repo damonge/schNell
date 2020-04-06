@@ -2,7 +2,7 @@ import healpy as hp
 import numpy as np
 # import matplotlib.pyplot as plt
 from detector import GroundDetector, LISADetector
-from mapping import MapCalculator
+from mapping import MapCalculator, MapCalculatorFromArray
 
 
 # Detectors
@@ -16,6 +16,9 @@ detl = LISADetector(0, map_transfer=True, is_L5Gm=False)
 mc11 = MapCalculator(det1, det1)
 mc12 = MapCalculator(det1, det2)
 mcLL = MapCalculator(detl, detl, f_pivot=1E-2)
+mc11_n = MapCalculatorFromArray([det1])
+mc12_n = MapCalculatorFromArray([det1, det2])
+mcLL_n = MapCalculatorFromArray([detl], f_pivot=1E-2)
 
 # Angles
 nside = 64
@@ -26,6 +29,20 @@ def test_gamma():
     g11 = np.real(mc11.get_gamma(0, 0, theta, phi, inc_baseline=False))
     g12 = np.real(mc12.get_gamma(0, 0, theta, phi, inc_baseline=False))
     gLL = np.abs(mcLL.get_gamma(0, 1E-2, theta, phi, inc_baseline=False))
+    g11_test, g12_test, gLL_test = hp.read_map("test_data/gamma_test.fits",
+                                               field=None)
+    assert np.all(np.fabs(g11-g11_test) < 1E-5)
+    assert np.all(np.fabs(g12-g12_test) < 1E-5)
+    assert np.all(np.fabs(gLL-gLL_test) < 1E-5)
+
+
+def test_gamma_new():
+    g11 = np.real(mc11_n.get_gamma(0, 0, 0, 0, theta, phi,
+                                   inc_baseline=False))
+    g12 = np.real(mc12_n.get_gamma(0, 1, 0, 0, theta, phi,
+                                   inc_baseline=False))
+    gLL = np.abs(mcLL_n.get_gamma(0, 0, 0, 1E-2, theta, phi,
+                                  inc_baseline=False))
     g11_test, g12_test, gLL_test = hp.read_map("test_data/gamma_test.fits",
                                                field=None)
     assert np.all(np.fabs(g11-g11_test) < 1E-5)
@@ -44,3 +61,16 @@ def test_Gell():
     assert np.all(np.fabs(gl11-gl11_test) < 1E-8)
     assert np.all(np.fabs(gl12-gl12_test) < 1E-8)
     assert np.all(np.fabs(glLL-glLL_test) < 1E-8)
+
+
+def test_Gell_new():
+    # The factor 2 here corrects for a pevious missing factor
+    # for auto-correlations.
+    gl11 = mc11_n.get_G_ell(0, 100., nside) * 2
+    gl12 = mc12_n.get_G_ell(0, 100., nside, no_autos=True)
+    glLL = mcLL_n.get_G_ell(0, 1E-2, nside) * 2
+    ls, gl11_test, gl12_test, glLL_test = np.loadtxt("test_data/gls_test.txt",
+                                                     unpack=True)
+    assert np.all(np.fabs(gl11/gl11_test-1) < 1E-8)
+    assert np.all(np.fabs(gl12/gl12_test-1) < 1E-8)
+    assert np.all(np.fabs(glLL/glLL_test-1) < 1E-8)

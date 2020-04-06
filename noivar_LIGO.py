@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import healpy as hp
 from detector import GroundDetector
-from mapping import MapCalculator
+from mapping import MapCalculatorFromArray
 from matplotlib import rc
 rc('font', **{'family': 'sans-serif',
               'sans-serif': ['Helvetica'],
@@ -24,9 +24,10 @@ dets = {'Hanford':     GroundDetector('Hanford',     46.4, -119.4, 171.8,
         'GEO600':      GroundDetector('GEO600',      48.0,    9.8,  68.8,
                                       'data/curves_May_2019/o1.txt')}
 # Initialize the map calculator
-mcals = {s1: {s2: MapCalculator(d1, d2, f_pivot=f_ref)
-              for s2, d2 in dets.items()}
-         for s1, d1 in dets.items()}
+mcal_hl = MapCalculatorFromArray([dets['Hanford'], dets['Livingstone']],
+                                 f_pivot=f_ref)
+mcal_all = MapCalculatorFromArray([d for _, d in dets.items()],
+                                  f_pivot=f_ref)
 
 
 freqs = np.linspace(10., 1010., 101)
@@ -36,7 +37,7 @@ obs_time = 24*3600.
 nframes = 24*6
 t_frames = np.linspace(0, obs_time, nframes+1)[:-1]
 
-inoi_hl = mcals['Hanford']['Livingstone'].get_Ninv_t(t_frames, freqs, nside)
+inoi_hl = mcal_hl.get_Ninv_t(t_frames, freqs, nside, no_autos=True)
 
 
 def plot_inoise_map(inoi, lims=[None, None], which='',
@@ -97,17 +98,7 @@ plot_inoise_map(np.mean(inoi_hl, axis=0), lims=[0, 2.3],
                 figname='plots/noivar_hl_cumul.pdf')
 plt.show()
 
-inoi = inoi_hl.copy()
-inoi += mcals['Hanford']['VIRGO'].get_Ninv_t(t_frames, freqs, nside)
-inoi += mcals['Hanford']['Kagra'].get_Ninv_t(t_frames, freqs, nside)
-inoi += mcals['Hanford']['GEO600'].get_Ninv_t(t_frames, freqs, nside)
-inoi += mcals['Livingstone']['VIRGO'].get_Ninv_t(t_frames, freqs, nside)
-inoi += mcals['Livingstone']['Kagra'].get_Ninv_t(t_frames, freqs, nside)
-inoi += mcals['Livingstone']['GEO600'].get_Ninv_t(t_frames, freqs, nside)
-inoi += mcals['VIRGO']['Kagra'].get_Ninv_t(t_frames, freqs, nside)
-inoi += mcals['VIRGO']['GEO600'].get_Ninv_t(t_frames, freqs, nside)
-inoi += mcals['Kagra']['GEO600'].get_Ninv_t(t_frames, freqs, nside)
-inoi_plot = inoi
+inoi = mcal_all.get_Ninv_t(t_frames, freqs, nside, no_autos=True)
 
 make_videos(inoi, 'plots/vid_all', remove_frames=True)
 plot_inoise_map(inoi[0], lims=[0, 8],

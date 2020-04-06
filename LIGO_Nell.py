@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from detector import GroundDetector
-from mapping import MapCalculator
+from mapping import MapCalculator, MapCalculatorFromArray
 
 
 # First set these parameters:
@@ -32,6 +32,9 @@ dets = {'Hanford':     GroundDetector('Hanford',     46.4, -119.4, 171.8,
 mcals = {s1: {s2: MapCalculator(d1, d2, f_pivot=f_ref)
               for s2, d2 in dets.items()}
          for s1, d1 in dets.items()}
+mcal_all = MapCalculatorFromArray([dets['Hanford'],
+                                   dets['Livingstone'],
+                                   dets['VIRGO']], f_pivot=f_ref)
 # Some internal arrays
 obs_time = t_obs*365*24*3600.
 freqs = np.linspace(10., 1010., 101)
@@ -57,6 +60,8 @@ inl_HL = get_inverse_nell('Hanford', 'Livingstone')
 inl_HV = get_inverse_nell('Hanford', 'VIRGO')
 inl_LV = get_inverse_nell('Livingstone', 'VIRGO')
 nl_total = 1./(inl_HL+inl_HV+inl_LV)
+nl_totalb = 1./(np.sum(mcal_all.get_G_ell(0., freqs, nside, no_autos=True),
+                       axis=0) * obs_time * dfreq)
 
 # Then plot
 ls = np.arange(3*nside)
@@ -65,6 +70,7 @@ plt.plot(ls, ls/inl_HL, label='HL')
 plt.plot(ls, ls/inl_HV, label='HV')
 plt.plot(ls, ls/inl_LV, label='LV')
 plt.plot(ls, ls*nl_total, label='Total')
+plt.plot(ls, ls*nl_total, '--', label='Total (new)')
 plt.loglog()
 plt.xlabel(r'$\ell$', fontsize=16)
 plt.ylabel(r'$\ell\,N_\ell$', fontsize=16)

@@ -287,3 +287,188 @@ class MapCalculator(object):
                 gls[i_f, i_t, :] = (g_r + g_i) * pre_A[i_f] * pre_B[i_f]
 
         return nprefac * np.squeeze(gls)
+
+
+class MapCalculatorFromArray(MapCalculator):
+    clight = 299792458.
+
+    def __init__(self, det_array, f_pivot=63., spectral_index=2./3.,
+                 corr_matrix=None):
+        self.dets = det_array
+        self.ndet = len(det_array)
+        self.f_pivot = f_pivot
+        self.specin_omega = spectral_index - 3
+        if corr_matrix is None:
+            self.rho = np.eye(self.ndet)
+        else:
+            if corr_matrix.shape != (self.ndet, self.ndet):
+                raise ValueError("Wrong correlation matrix shape")
+            self.rho = corr_matrix
+
+    def _get_gamma_ij(self, i, j, t, f, ct, st, cp, sp, pol=False,
+                      inc_baseline=True):
+        return self._get_gamma_single(t, f, ct, st, cp, sp,
+                                      pol=pol, inc_baseline=inc_baseline,
+                                      dA=self.dets[i], dB=self.dets[j])
+
+    def get_gamma(self, i, j, t, f, theta, phi, pol=False,
+                  inc_baseline=True):
+        ct, st, cp, sp = self._precompute_skyvec(theta, phi)
+        return np.squeeze(self._get_gamma_ij(i, j, t, f,
+                                             ct, st, cp, sp,
+                                             pol=pol,
+                                             inc_baseline=inc_baseline))
+
+    def plot_gamma(self, t, f, n_theta=100, n_phi=100, i=0, j=0):
+        from mpl_toolkits.mplot3d import Axes3D
+        phi = np.linspace(0, np.pi, n_phi)
+        theta = np.linspace(0, 2*np.pi, n_theta)
+        phi, theta = np.meshgrid(phi, theta)
+        gamma = self.get_gamma(i, j, t, f,
+                               theta.flatten(),
+                               phi.flatten(),
+                               inc_baseline=False)
+        gamma = np.abs(gamma.reshape([n_theta, n_phi]))
+        x = gamma * np.sin(phi) * np.cos(theta)
+        y = gamma * np.sin(phi) * np.sin(theta)
+        z = gamma * np.cos(phi)
+        gmax, gmin = gamma.max(), gamma.min()
+        fcolors = (gamma - gmin)/(gmax - gmin)
+        fig = plt.figure(figsize=plt.figaspect(1.))
+        ax = fig.add_subplot(111, projection='3d')
+        ax.set_title(self.det_A.name+" "+self.det_B.name)
+        ax.plot_surface(x, y, z,  rstride=1, cstride=1,
+                        facecolors=cm.seismic(fcolors))
+        ax.set_axis_off()
+
+    def get_Ninv_t(self, t, f, nside, is_fspacing_log=False,
+                   no_autos=False):
+        t_use = np.atleast_1d(t)
+        f_use = f
+        if is_fspacing_log:
+            dlf = np.mean(np.diff(np.log(f)))
+            df = f * dlf
+        else:
+            df = np.mean(np.diff(f)) * np.ones(len(f))
+
+        npix = hp.nside2npix(nside)
+        th, ph = hp.pix2ang(nside, np.arange(npix))
+        ct, st, cp, sp = self._precompute_skyvec(th, ph)
+
+        # Get S matrix:
+        # [n_f, n_det]
+        S_f_diag = np.array([d.psd(f_use) for d in self.dets]).T
+        # [n_f, n_det, n_det]
+        S_f = np.sqrt(S_f_diag[:, :, None] * S_f_diag[:, None, :])
+        S_f *= self.rho[None, :, :]
+        # Invert
+        iS_f = np.linalg.inv(S_f)
+
+        # Get all maps
+        gammas = np.zeros([self.ndet, self.ndet,
+                           len(t_use), len(f_use), npix],
+                          dtype=np.cdouble)
+        for i1 in range(self.ndet):
+            for i2 in range(i1, self.ndet):
+                g12 = self._get_gamma_ij(i1, i2, t_use, f_use,
+                                         ct, st, cp, sp,
+                                         inc_baseline=True)
+                gammas[i1, i2, :, :, :] = g12
+                if i2 != i1:
+                    gammas[i2, i1, :, :, :] = np.conj(g12)
+
+        # Prefactors
+        e_f = (f_use / self.f_pivot)**self.specin_omega / self.norm_pivot()
+        prefac = 0.5 * (8 * np.pi * e_f / 5)**2
+
+        # Loop over detectors
+        inoivar = np.zeros([len(t_use), npix])
+        for iA in range(self.ndet):
+            for iB in range(self.ndet):
+                iS_AB = iS_f[:, iA, iB]
+                for iC in range(self.ndet):
+                    gBC = gammas[iB, iC, :, :, :]
+                    if iB == iC and no_autos:
+                        continue
+                    for iD in range(self.ndet):
+                        iS_CD = iS_f[:, iC, iD]
+                        gDA = gammas[iD, iA, :, :, :]
+                        if iA == iD and no_autos:
+                            continue
+                        ff = df*prefac*iS_AB*iS_CD
+                        inoivar += np.sum(ff[None, :, None] *
+                                          np.real(gBC * gDA), axis=1)
+        return np.squeeze(inoivar)
+
+    def get_G_ell(self, t, f, nside, no_autos=False):
+        t_use = np.atleast_1d(t)
+        f_use = np.atleast_1d(f)
+
+        nf = len(f_use)
+        nt = len(t_use)
+        npix = hp.nside2npix(nside)
+        nalm = (3*nside*(3*nside+1))//2
+        nell = 3*nside
+        th, ph = hp.pix2ang(nside, np.arange(npix))
+        ct, st, cp, sp = self._precompute_skyvec(th, ph)
+
+        # Get S matrix:
+        # [n_f, n_det]
+        S_f_diag = np.array([d.psd(f_use) for d in self.dets]).T
+        # [n_f, n_det, n_det]
+        S_f = np.sqrt(S_f_diag[:, :, None] * S_f_diag[:, None, :])
+        S_f *= self.rho[None, :, :]
+        # Invert
+        iS_f = np.linalg.inv(S_f)
+
+        # Get gamma alms
+        galms_r = np.zeros([self.ndet, self.ndet,
+                            nt, nf, nalm],
+                           dtype=np.cdouble)
+        galms_i = np.zeros([self.ndet, self.ndet,
+                            nt, nf, nalm],
+                           dtype=np.cdouble)
+        for i1 in range(self.ndet):
+            for i2 in range(i1, self.ndet):
+                if i1 == i2 and no_autos:
+                    continue
+                gamma = self._get_gamma_ij(i1, i2, t_use, f_use,
+                                           ct, st, cp, sp,
+                                           inc_baseline=True)
+                for i_t in range(nt):
+                    for i_f in range(nf):
+                        g = gamma[i_t, i_f, :]
+                        alm_r = hp.map2alm(np.real(g))
+                        alm_i = hp.map2alm(np.imag(g))
+                        galms_r[i1, i2, i_t, i_f, :] = alm_r
+                        galms_i[i1, i2, i_t, i_f, :] = alm_i
+                        if i2 != i1:
+                            galms_r[i2, i1, i_t, i_f, :] = np.conj(alm_r)
+                            galms_i[i2, i1, i_t, i_f, :] = np.conj(alm_i)
+
+        # Prefactors
+        e_f = (f_use / self.f_pivot)**self.specin_omega / self.norm_pivot()
+        prefac = 0.5 * (8 * np.pi * e_f / 5)**2
+
+        gls = np.zeros([nf, nt, nell])
+        for i_t in range(nt):
+            for i_f in range(nf):
+                for iA in range(self.ndet):
+                    for iB in range(self.ndet):
+                        iS_AB = iS_f[i_f, iA, iB]
+                        for iC in range(self.ndet):
+                            gBCr = galms_r[iB, iC, i_t, i_f, :]
+                            gBCi = galms_i[iB, iC, i_t, i_f, :]
+                            if iB == iC and no_autos:
+                                continue
+                            for iD in range(self.ndet):
+                                iS_CD = iS_f[i_f, iC, iD]
+                                gADr = galms_r[iA, iD, i_t, i_f, :]
+                                gADi = galms_i[iA, iD, i_t, i_f, :]
+                                if iA == iD and no_autos:
+                                    continue
+                                clr = hp.alm2cl(gBCr, gADr)
+                                cli = hp.alm2cl(gBCi, gADi)
+                                gls[i_f, i_t, :] += iS_AB * iS_CD * (clr + cli)
+
+        return np.squeeze(gls * prefac[:, None, None])
