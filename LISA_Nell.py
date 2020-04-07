@@ -3,10 +3,14 @@ from detector import LISADetector
 from mapping import MapCalculator, MapCalculatorFromArray
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
 import matplotlib.pyplot as plt
+from matplotlib import rc
+rc('font', **{'family': 'sans-serif',
+              'sans-serif': ['Helvetica']})
+rc('text', usetex=True)
 
 # First set these parameters:
 #  - Observing time (in years)
-t_obs = 1
+t_obs = 4
 #  - Reference frequency (in Hz)
 f_ref = 1E-2
 #  - HEALPix resolution parameter
@@ -29,6 +33,7 @@ rho = np.array([[1, r, r],
                 [r, r, 1]])
 mca = MapCalculatorFromArray([det_0, det_1, det_2], f_pivot=f_ref,
                              corr_matrix=rho)
+mcb = MapCalculatorFromArray([det_0], f_pivot=f_ref)
 # Some internal arrays
 lfreqs = np.linspace(-4, 0, 101)
 dlfreq = np.mean(np.diff(lfreqs))
@@ -59,7 +64,9 @@ inl_pm = get_inverse_nell('+,-')
 inl_mm = get_inverse_nell('-,-')
 nl_total = 1./(inl_pp+inl_pm+inl_mm)
 
-glb = mca.get_G_ell(0, freqs, nside) * dfreqs[:, None]
+gla = mca.get_G_ell(0, freqs, nside) * dfreqs[:, None]
+nl_total_a = 1./(np.sum(gla, axis=0) * obs_time)
+glb = mcb.get_G_ell(0, freqs, nside) * dfreqs[:, None]
 nl_total_b = 1./(np.sum(glb, axis=0) * obs_time)
 
 # Then you can plot. Note that, as we said, all the odd
@@ -72,17 +79,20 @@ nl_total_b = 1./(np.sum(glb, axis=0) * obs_time)
 ls = np.arange(3*nside)
 
 plt.figure()
-plt.plot(ls[::2], (ls/inl_pp)[::2], 'ro-', label='+,+')
-plt.plot(ls[::2], (ls/inl_pm)[::2], 'bo-', label='+,-')
-plt.plot(ls[::2], (ls/inl_mm)[::2], 'yo-', label='-,-')
-plt.plot(ls[::2], (ls*nl_total)[::2], 'ko-', label='Total')
-plt.plot(ls[::2], (ls*nl_total_b)[::2], 'gs-', label='Total (new)')
-plt.plot(ls[1::2], (ls*nl_total)[1::2], 'kx')
-plt.plot(ls[1::2], (ls*nl_total_b)[1::2], 'gx')
-plt.xlim([1, 60])
-plt.ylim([2E-27, 6E-11])
+#plt.plot(ls[::2], (ls/inl_pp)[::2], 'ro-', label='+,+')
+#plt.plot(ls[::2], (ls/inl_pm)[::2], 'bo-', label='+,-')
+#plt.plot(ls[::2], (ls/inl_mm)[::2], 'yo-', label='-,-')
+#plt.plot(ls[::2], (ls*nl_total)[::2], 'ko-', label='Total')
+plt.plot(ls[::2], (ls*nl_total_b)[::2], 'ro-', label='Single-detector')
+plt.plot(ls[::2], (ls*nl_total_a)[::2], 'ko-', label='Array')
+plt.plot(ls[1::2], (ls*nl_total_b)[1::2], 'rx')
+plt.plot(ls[1::2], (ls*nl_total_a)[1::2], 'kx', label='Array (odd $\\ell$)')
+plt.xlim([1, 30])
+plt.ylim([2E-28, 9E-15])
 plt.xlabel(r'$\ell$', fontsize=16)
 plt.ylabel(r'$\ell\,N_\ell$', fontsize=16)
+plt.gca().tick_params(labelsize="large")
 plt.loglog()
-plt.legend(loc='upper left')
+plt.legend(loc='upper left', fontsize=14)
+plt.savefig("plots/nl_LISA.pdf", bbox_inches='tight')
 plt.show()

@@ -25,15 +25,18 @@ npix = hp.nside2npix(nside)
 theta, phi = hp.pix2ang(nside, np.arange(npix))
 
 plt.figure(figsize=(7, 8))
-for i, f in enumerate([0.001, 0.01, 0.1, 0.2]):
-    resp_11 = mc.get_gamma(0, 0, 0., f, theta, phi, inc_baseline=True)
-    resp_12 = mc.get_gamma(0, 1, 0., f, theta, phi, inc_baseline=True)
+freqs = [0.001, 0.02, 0.1, 0.5]
+facs = [1., 1., 20., 100.]
+sfac = ['', '', '20\\times', '100\\times']
+for i, (f, fc, sfc) in enumerate(zip(freqs, facs, sfac)):
+    resp_11 = mc.get_gamma(0, 0, 0., f, theta, phi, inc_baseline=True)*facs[i]
+    resp_12 = mc.get_gamma(0, 1, 0., f, theta, phi, inc_baseline=True)*facs[i]
     fs = ('%f' % f).rstrip('0').rstrip('.')
     hp.mollview(np.abs(resp_11), sub=420+2*i+1, coord=['E', 'G'],
-                notext=True, cbar=False,
-                title=r'$|{\cal R}_{1\,1}(\hat{\bf n})|,\,\,f=%s\,{\rm Hz}$' % fs)
+                notext=True, cbar=False, max=0.14,
+                title='$%s |{\\cal R}_{11}(f,\\hat{\\bf n})|,\\,\\,f=%s\\,{\\rm Hz}$' % (sfc, fs))
     hp.mollview(np.abs(resp_12), sub=420+2*i+2, coord=['E', 'G'],
-                notext=True, cbar=False,
-                title=r'$|{\cal R}_{1\,2}(\hat{\bf n})|,\,\,f=%s\,{\rm Hz}$' % fs)
+                notext=True, cbar=False, max=0.07,
+                title='$%s |{\\cal R}_{12}(f,\\hat{\\bf n})|,\\,\\,f=%s\\,{\\rm Hz}$' % (sfc, fs))
 plt.savefig("plots/antenna_LISA.pdf", bbox_inches='tight')
 plt.show()

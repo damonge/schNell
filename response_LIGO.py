@@ -36,17 +36,17 @@ for i, lf in enumerate([1, 2, 3]):
     resp_HV = mc_HV.get_gamma(0, 1, 0., f, theta, phi)
     hp.mollview(np.real(resp_HL), sub=420+2*i+1, coord=['C', 'G'],
                 notext=True, cbar=False,
-                title=r'${\rm Re}({\cal R}_{\rm HL}(\hat{\bf n})),\,\,f=10^{%d}\,{\rm Hz}$' % lf)
+                title=r'${\rm Re}({\cal R}_{\rm HL}(f, \hat{\bf n})),\,\,f=10^{%d}\,{\rm Hz}$' % lf)
     hp.mollview(np.real(resp_HV), sub=420+2*i+2, coord=['C', 'G'],
                 notext=True, cbar=False,
-                title=r'${\rm Re}({\cal R}_{\rm HV}(\hat{\bf n})),\,\,f=10^{%d}\,{\rm Hz}$' % lf)
+                title=r'${\rm Re}({\cal R}_{\rm HV}(f, \hat{\bf n})),\,\,f=10^{%d}\,{\rm Hz}$' % lf)
 gamma_HL = mc_HL.get_gamma(0, 1, 0., f, theta, phi, inc_baseline=False)
 gamma_HV = mc_HV.get_gamma(0, 1, 0., f, theta, phi, inc_baseline=False)
 hp.mollview(gamma_HL, sub=427, coord=['C', 'G'],
             notext=True, cbar=False,
-            title=r'$\gamma_{\rm HL}(\hat{\bf n})$')
+            title=r'$\gamma_{\rm HL}(f, \hat{\bf n})$')
 hp.mollview(gamma_HV, sub=428, coord=['C', 'G'],
             notext=True, cbar=False,
-            title=r'$\gamma_{\rm HV}(\hat{\bf n})$')
+            title=r'$\gamma_{\rm HV}(f, \hat{\bf n})$')
 plt.savefig("plots/antenna_LIGO.pdf", bbox_inches='tight')
 plt.show()
