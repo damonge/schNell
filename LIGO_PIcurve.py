@@ -60,8 +60,7 @@ obs = np.array([Ob(b, rho=2) for b in betas])
 pi_2sigma = np.max(obs, axis=0)
 
 # Plotting
-# Note extra factor of 8*pi because of I->Omega translation
-plt.plot(freqs, pi_2sigma*8*np.pi)
+plt.plot(freqs, pi_2sigma)
 plt.loglog()
 plt.xlim([10, 1000])
 plt.ylim([1E-10, 1E-5])

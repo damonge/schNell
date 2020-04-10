@@ -17,7 +17,7 @@ class MapCalculator(object):
         # H0 in km/s/Mpc in Hz
         H0 = h * 3.24077929E-18
         # 2 pi^2 f^3 / 3 H0^2
-        return 2 * np.pi**2 * self.f_pivot**3 / (3 * H0**2)
+        return 4 * np.pi**2 * self.f_pivot**3 / (3 * H0**2)
 
     def _precompute_skyvec(self, theta, phi):
         theta_use = np.atleast_1d(theta)
@@ -200,8 +200,8 @@ class MapCalculator(object):
         s_A = self.det_A.psd(f_use)
         s_B = self.det_B.psd(f_use)
         e_f = (f_use / self.f_pivot)**self.specin_omega / self.norm_pivot()
-        pre_A = 8 * np.pi * e_f / (5 * s_A)
-        pre_B = 8 * np.pi * e_f / (5 * s_B)
+        pre_A = 2 * e_f / (5 * s_A)
+        pre_B = 2 * e_f / (5 * s_B)
 
         # Noise prefactor for special detector combinations
         if typ == 'A,B':
@@ -250,8 +250,8 @@ class MapCalculator(object):
         s_A = self.det_A.psd(f_use)
         s_B = self.det_B.psd(f_use)
         e_f = (f_use / self.f_pivot)**self.specin_omega / self.norm_pivot()
-        pre_A = 8 * np.pi * e_f / (5 * s_A)
-        pre_B = 8 * np.pi * e_f / (5 * s_B)
+        pre_A = 2 * e_f / (5 * s_A)
+        pre_B = 2 * e_f / (5 * s_B)
 
         # Noise prefactor for special detector combinations
         if typ == 'A,B':
@@ -379,7 +379,7 @@ class MapCalculatorFromArray(MapCalculator):
 
         # Prefactors
         e_f = (f_use / self.f_pivot)**self.specin_omega / self.norm_pivot()
-        prefac = 0.5 * (8 * np.pi * e_f / 5)**2
+        prefac = 0.5 * (2 * e_f / 5)**2
 
         # Loop over detectors
         inoivar = np.zeros([len(t_use), npix])
@@ -436,7 +436,7 @@ class MapCalculatorFromArray(MapCalculator):
         # Translation between Omega and I
         e_f = (self.f_pivot / f_use)**3 / self.norm_pivot()
         # Prefactors
-        prefac = 0.5 * (8 * np.pi * e_f / 5)**2
+        prefac = 0.5 * (2 * e_f / 5)**2
 
         # Loop over detectors
         inoivar = np.zeros([len(t_use), len(f_use)])
@@ -504,7 +504,7 @@ class MapCalculatorFromArray(MapCalculator):
 
         # Prefactors
         e_f = (f_use / self.f_pivot)**self.specin_omega / self.norm_pivot()
-        prefac = 0.5 * (8 * np.pi * e_f / 5)**2
+        prefac = 0.5 * (2 * e_f / 5)**2
 
         gls = np.zeros([nf, nt, nell])
         for i_t in range(nt):
