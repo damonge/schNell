@@ -400,6 +400,60 @@ class MapCalculatorFromArray(MapCalculator):
                                           np.real(gBC * gDA), axis=1)
         return np.squeeze(inoivar)
 
+    def get_dsigm2_dnu_t(self, t, f, nside, no_autos=False):
+        t_use = np.atleast_1d(t)
+        f_use = f
+
+        npix = hp.nside2npix(nside)
+        pix_area = 4*np.pi/npix
+        th, ph = hp.pix2ang(nside, np.arange(npix))
+        ct, st, cp, sp = self._precompute_skyvec(th, ph)
+
+        # Get S matrix:
+        # [n_f, n_det]
+        S_f_diag = np.array([d.psd(f_use) for d in self.dets]).T
+        # [n_f, n_det, n_det]
+        S_f = np.sqrt(S_f_diag[:, :, None] * S_f_diag[:, None, :])
+        S_f *= self.rho[None, :, :]
+        # Invert
+        iS_f = np.linalg.inv(S_f)
+
+        # Get all maps
+        rhos = np.zeros([self.ndet, self.ndet,
+                         len(t_use), len(f_use)],
+                        dtype=np.cdouble)
+        for i1 in range(self.ndet):
+            for i2 in range(i1, self.ndet):
+                g12 = self._get_gamma_ij(i1, i2, t_use, f_use,
+                                         ct, st, cp, sp,
+                                         inc_baseline=True)
+                # Sky integral
+                ig12 = np.sum(g12, axis=-1) * pix_area
+                rhos[i1, i2, :, :] = ig12
+                if i2 != i1:
+                    rhos[i2, i1, :, :] = np.conj(ig12)
+
+        # Prefactors
+        prefac = 0.5 * (8 * np.pi / 5)**2
+
+        # Loop over detectors
+        inoivar = np.zeros([len(t_use), len(f_use)])
+        for iA in range(self.ndet):
+            for iB in range(self.ndet):
+                iS_AB = iS_f[:, iA, iB]
+                for iC in range(self.ndet):
+                    rBC = rhos[iB, iC, :, :]
+                    if iB == iC and no_autos:
+                        continue
+                    for iD in range(self.ndet):
+                        iS_CD = iS_f[:, iC, iD]
+                        rDA = rhos[iD, iA, :, :]
+                        if iA == iD and no_autos:
+                            continue
+                        ff = prefac*iS_AB*iS_CD
+                        inoivar += ff[None, :] * np.real(rBC * rDA)
+        return np.squeeze(inoivar)
+
     def get_G_ell(self, t, f, nside, no_autos=False):
         t_use = np.atleast_1d(t)
         f_use = np.atleast_1d(f)
