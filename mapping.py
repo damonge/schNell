@@ -433,8 +433,10 @@ class MapCalculatorFromArray(MapCalculator):
                 if i2 != i1:
                     rhos[i2, i1, :, :] = np.conj(ig12)
 
+        # Translation between Omega and I
+        e_f = (self.f_pivot / f_use)**3 / self.norm_pivot()
         # Prefactors
-        prefac = 0.5 * (8 * np.pi / 5)**2
+        prefac = 0.5 * (8 * np.pi * e_f / 5)**2
 
         # Loop over detectors
         inoivar = np.zeros([len(t_use), len(f_use)])

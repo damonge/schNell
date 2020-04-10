@@ -76,7 +76,7 @@ class GroundDetector(Detector):
     def __init__(self, name, lat, lon, alpha, fname_psd, aperture=90):
         # Translate between Renzini's alpha and mine
         self.name = name
-        self.alpha = np.radians(alpha)
+        self.alpha = np.radians(90-alpha)
         self.beta = np.radians(aperture / 2)
         self.phi_e = np.radians(lon)
         self.theta_e = np.radians(90-lat)
