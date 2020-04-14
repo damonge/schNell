@@ -180,7 +180,7 @@ class MapCalculator(object):
                         facecolors=cm.seismic(fcolors))
         ax.set_axis_off()
 
-    def get_Ninv_t(self, t, f, nside, typ='A,B', is_fspacing_log=False):
+    def get_Ninv_t(self, t, f, nside, typ='A,B', is_fspacing_log=False, deltaOmega_norm=True):
         t_use = np.atleast_1d(t)
         f_use = f
         if is_fspacing_log:
@@ -202,6 +202,9 @@ class MapCalculator(object):
         e_f = (f_use / self.f_pivot)**self.specin_omega / self.norm_pivot()
         pre_A = 2 * e_f / (5 * s_A)
         pre_B = 2 * e_f / (5 * s_B)
+        if deltaOmega_norm:
+            pre_A *= 4*np.pi
+            pre_B *= 4*np.pi
 
         # Noise prefactor for special detector combinations
         if typ == 'A,B':
@@ -231,7 +234,7 @@ class MapCalculator(object):
                           np.abs(gamma)**2), axis=1)
         return np.squeeze(inoivar)
 
-    def get_G_ell(self, t, f, nside, typ='A,B'):
+    def get_G_ell(self, t, f, nside, typ='A,B', deltaOmega_norm=True):
         t_use = np.atleast_1d(t)
         f_use = np.atleast_1d(f)
 
@@ -252,6 +255,9 @@ class MapCalculator(object):
         e_f = (f_use / self.f_pivot)**self.specin_omega / self.norm_pivot()
         pre_A = 2 * e_f / (5 * s_A)
         pre_B = 2 * e_f / (5 * s_B)
+        if deltaOmega_norm:
+            pre_A *= 4*np.pi
+            pre_B *= 4*np.pi
 
         # Noise prefactor for special detector combinations
         if typ == 'A,B':
@@ -342,7 +348,7 @@ class MapCalculatorFromArray(MapCalculator):
         ax.set_axis_off()
 
     def get_Ninv_t(self, t, f, nside, is_fspacing_log=False,
-                   no_autos=False):
+                   no_autos=False, deltaOmega_norm=True):
         t_use = np.atleast_1d(t)
         f_use = f
         if is_fspacing_log:
@@ -380,6 +386,8 @@ class MapCalculatorFromArray(MapCalculator):
         # Prefactors
         e_f = (f_use / self.f_pivot)**self.specin_omega / self.norm_pivot()
         prefac = 0.5 * (2 * e_f / 5)**2
+        if deltaOmega_norm:
+            prefac *= (4*np.pi)**2
 
         # Loop over detectors
         inoivar = np.zeros([len(t_use), npix])
@@ -456,7 +464,7 @@ class MapCalculatorFromArray(MapCalculator):
                         inoivar += ff[None, :] * np.real(rBC * rDA)
         return np.squeeze(inoivar)
 
-    def get_G_ell(self, t, f, nside, no_autos=False):
+    def get_G_ell(self, t, f, nside, no_autos=False, deltaOmega_norm=True):
         t_use = np.atleast_1d(t)
         f_use = np.atleast_1d(f)
 
@@ -505,6 +513,8 @@ class MapCalculatorFromArray(MapCalculator):
         # Prefactors
         e_f = (f_use / self.f_pivot)**self.specin_omega / self.norm_pivot()
         prefac = 0.5 * (2 * e_f / 5)**2
+        if deltaOmega_norm:
+            prefac *= (4*np.pi)**2
 
         gls = np.zeros([nf, nt, nell])
         for i_t in range(nt):

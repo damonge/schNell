@@ -6,9 +6,9 @@ from mapping import MapCalculator, MapCalculatorFromArray
 
 
 # Detectors
-det1 = GroundDetector('Hanford',     46.4, -119.4, 171.8,
+det1 = GroundDetector('Hanford',     46.4, -119.4, 90-171.8,
                       'data/curves_May_2019/aligo_design.txt')
-det2 = GroundDetector('Livingstone', 30.7,  -90.8, 243.0,
+det2 = GroundDetector('Livingstone', 30.7,  -90.8, 90-243.0,
                       'data/curves_May_2019/aligo_design.txt')
 detl = LISADetector(0, map_transfer=True, is_L5Gm=False)
 
@@ -53,24 +53,24 @@ def test_gamma_new():
 def test_Gell():
     # The factor 2 here corrects for a pevious missing factor
     # for auto-correlations.
-    gl11 = mc11.get_G_ell(0, 100., nside) * 2
-    gl12 = mc12.get_G_ell(0, 100., nside)
-    glLL = mcLL.get_G_ell(0, 1E-2, nside) * 2
+    gl11 = mc11.get_G_ell(0, 100., nside) * 2 * 4
+    gl12 = mc12.get_G_ell(0, 100., nside) * 4
+    glLL = mcLL.get_G_ell(0, 1E-2, nside) * 2 * 4
     ls, gl11_test, gl12_test, glLL_test = np.loadtxt("test_data/gls_test.txt",
                                                      unpack=True)
-    assert np.all(np.fabs(gl11-gl11_test) < 1E-8)
-    assert np.all(np.fabs(gl12-gl12_test) < 1E-8)
-    assert np.all(np.fabs(glLL-glLL_test) < 1E-8)
+    assert np.all(np.fabs(gl11/gl11_test-1)[::2] < 1E-8)
+    assert np.all(np.fabs(gl12/gl12_test-1)[::2] < 1E-8)
+    assert np.all(np.fabs(glLL/glLL_test-1)[::2] < 1E-8)
 
 
 def test_Gell_new():
     # The factor 2 here corrects for a pevious missing factor
     # for auto-correlations.
-    gl11 = mc11_n.get_G_ell(0, 100., nside) * 2
-    gl12 = mc12_n.get_G_ell(0, 100., nside, no_autos=True)
-    glLL = mcLL_n.get_G_ell(0, 1E-2, nside) * 2
+    gl11 = mc11_n.get_G_ell(0, 100., nside) * 2 * 4
+    gl12 = mc12_n.get_G_ell(0, 100., nside, no_autos=True) * 4
+    glLL = mcLL_n.get_G_ell(0, 1E-2, nside) * 2 * 4
     ls, gl11_test, gl12_test, glLL_test = np.loadtxt("test_data/gls_test.txt",
                                                      unpack=True)
-    assert np.all(np.fabs(gl11/gl11_test-1) < 1E-8)
-    assert np.all(np.fabs(gl12/gl12_test-1) < 1E-8)
-    assert np.all(np.fabs(glLL/glLL_test-1) < 1E-8)
+    assert np.all(np.fabs(gl11/gl11_test-1)[::2] < 1E-8)
+    assert np.all(np.fabs(gl12/gl12_test-1)[::2] < 1E-8)
+    assert np.all(np.fabs(glLL/glLL_test-1)[::2] < 1E-8)
