@@ -69,6 +69,68 @@ class Detector(object):
         return np.exp(2*self.lpsdf(np.log(nu)))
 
 
+class GroundDetectorTriangle(Detector):
+    rot_freq_earth = 2*np.pi/(24*3600)
+    earth_radius = 6.371E6  # in meters
+
+    def __init__(self, name, lat, lon, fname_psd, detector_id,
+                 beta0_deg=0, arm_length_km=10.):
+        self.name = name
+        self.i_d = detector_id
+        self.phi_e = np.radians(lon)
+        self.theta_e = np.radians(90-lat)
+        self.ct = np.cos(self.theta_e)
+        self.st = np.sin(self.theta_e)
+        self.L = arm_length_km*1000
+        self.alpha = self.L/(np.sqrt(3.) * self.earth_radius)
+        self.betas = np.radians(beta0_deg) + 2 * np.arange(3) * np.pi/3.
+        self.ca = np.cos(self.alpha)
+        self.sa = np.sin(self.alpha)
+        self.cbs = np.cos(self.betas)
+        self.sbs = np.sin(self.betas)
+        self.read_psd(fname_psd)
+
+    def pos_single(self, t, n):
+        # Returns [3, nt]
+        phi = self.phi_e + self.rot_freq_earth * t
+        cp = np.cos(phi)
+        sp = np.sin(phi)
+        o = np.ones_like(t)
+        cb = self.cbs[n]
+        sb = self.sbs[n]
+        pos = np.array([self.ct * self.sa * cp * cb -
+                        self.sa * sp * sb +
+                        self.st * self.ca * cp,
+                        self.ct * self.sa * sp * cb +
+                        self.sa * cp * sb +
+                        self.st * self.ca * sp,
+                        o*(-self.st * self.sa * cb +
+                           self.ct * self.ca)])
+        pos *= self.earth_radius
+        return pos
+
+    def pos_all(self, t):
+        return np.array([self.pos_single(t, i)
+                         for i in range(3)])
+
+    def get_position(self, t):
+        return self.pos_single(t, self.i_d)
+
+    def get_x_y(self, t):
+        t_use = np.atleast_1d(t)
+        pos = self.pos_all(t_use)
+        np0 = (self.i_d + 0) % 3
+        np1 = (self.i_d + 1) % 3
+        np2 = (self.i_d + 2) % 3
+        xv = pos[np1] - pos[np0]
+        xl = np.sqrt(np.sum(xv**2, axis=0))
+        x = xv[:, :] / xl[None, :]
+        yv = pos[np2] - pos[np0]
+        yl = np.sqrt(np.sum(yv**2, axis=0))
+        y = yv[:, :] / yl[None, :]
+        return x, y
+
+
 class GroundDetector(Detector):
     rot_freq_earth = 2*np.pi/(24*3600)
     earth_radius = 6.371E6  # in meters
