@@ -349,6 +349,12 @@ class MapCalculatorFromArray(MapCalculator):
 
     def get_Ninv_t(self, t, f, nside, is_fspacing_log=False,
                    no_autos=False, deltaOmega_norm=True):
+        if np.ndim(no_autos) == 0:
+            no_autos = np.array([no_autos] * self.ndet)
+        else:
+            if len(no_autos) != self.ndet:
+                raise ValueError("No autos should have %d elements" %
+                                 self.ndet)
         t_use = np.atleast_1d(t)
         f_use = f
         if is_fspacing_log:
@@ -396,12 +402,12 @@ class MapCalculatorFromArray(MapCalculator):
                 iS_AB = iS_f[:, iA, iB]
                 for iC in range(self.ndet):
                     gBC = gammas[iB, iC, :, :, :]
-                    if iB == iC and no_autos:
+                    if iB == iC and no_autos[iB]:
                         continue
                     for iD in range(self.ndet):
                         iS_CD = iS_f[:, iC, iD]
                         gDA = gammas[iD, iA, :, :, :]
-                        if iA == iD and no_autos:
+                        if iA == iD and no_autos[iA]:
                             continue
                         ff = df*prefac*iS_AB*iS_CD
                         inoivar += np.sum(ff[None, :, None] *
@@ -409,6 +415,12 @@ class MapCalculatorFromArray(MapCalculator):
         return np.squeeze(inoivar)
 
     def get_dsigm2_dnu_t(self, t, f, nside, no_autos=False):
+        if np.ndim(no_autos) == 0:
+            no_autos = np.array([no_autos] * self.ndet)
+        else:
+            if len(no_autos) != self.ndet:
+                raise ValueError("No autos should have %d elements" %
+                                 self.ndet)
         t_use = np.atleast_1d(t)
         f_use = f
 
@@ -453,18 +465,24 @@ class MapCalculatorFromArray(MapCalculator):
                 iS_AB = iS_f[:, iA, iB]
                 for iC in range(self.ndet):
                     rBC = rhos[iB, iC, :, :]
-                    if iB == iC and no_autos:
+                    if iB == iC and no_autos[iB]:
                         continue
                     for iD in range(self.ndet):
                         iS_CD = iS_f[:, iC, iD]
                         rDA = rhos[iD, iA, :, :]
-                        if iA == iD and no_autos:
+                        if iA == iD and no_autos[iA]:
                             continue
                         ff = prefac*iS_AB*iS_CD
                         inoivar += ff[None, :] * np.real(rBC * rDA)
         return np.squeeze(inoivar)
 
     def get_G_ell(self, t, f, nside, no_autos=False, deltaOmega_norm=True):
+        if np.ndim(no_autos) == 0:
+            no_autos = np.array([no_autos] * self.ndet)
+        else:
+            if len(no_autos) != self.ndet:
+                raise ValueError("No autos should have %d elements" %
+                                 self.ndet)
         t_use = np.atleast_1d(t)
         f_use = np.atleast_1d(f)
 
@@ -494,7 +512,7 @@ class MapCalculatorFromArray(MapCalculator):
                            dtype=np.cdouble)
         for i1 in range(self.ndet):
             for i2 in range(i1, self.ndet):
-                if i1 == i2 and no_autos:
+                if i1 == i2 and no_autos[i1]:
                     continue
                 gamma = self._get_gamma_ij(i1, i2, t_use, f_use,
                                            ct, st, cp, sp,
@@ -525,13 +543,13 @@ class MapCalculatorFromArray(MapCalculator):
                         for iC in range(self.ndet):
                             gBCr = galms_r[iB, iC, i_t, i_f, :]
                             gBCi = galms_i[iB, iC, i_t, i_f, :]
-                            if iB == iC and no_autos:
+                            if iB == iC and no_autos[iB]:
                                 continue
                             for iD in range(self.ndet):
                                 iS_CD = iS_f[i_f, iC, iD]
                                 gADr = galms_r[iA, iD, i_t, i_f, :]
                                 gADi = galms_i[iA, iD, i_t, i_f, :]
-                                if iA == iD and no_autos:
+                                if iA == iD and no_autos[iA]:
                                     continue
                                 clr = hp.alm2cl(gBCr, gADr)
                                 cli = hp.alm2cl(gBCi, gADi)
