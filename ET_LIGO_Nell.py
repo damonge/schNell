@@ -7,16 +7,29 @@ rc('font', **{'family': 'sans-serif',
               'sans-serif': ['Helvetica']})
 rc('text', usetex=True)
 
-
+# First set these parameters:
+#  - Observing time (in years)
 t_obs = 1
+#  - Reference frequency (in Hz)
 f_ref = 63
+#  - HEALPix resolution parameter
+#    N_ell will be provided up to ell=3*nside
 nside = 32
-rET = -0.2
+#  - Correlation coefficient between the different ET detectors
+rE = -0.2
 
+obs_time = t_obs*365*24*3600.
+freqs = np.linspace(10., 1010., 101)
+dfreq = np.mean(np.diff(freqs))
+
+
+# This is the ET detector
 et = [GroundDetectorTriangle(name='ET%d' % i, lat=41.9, lon=12.5,
                              fname_psd='data/curves_May_2019/et_d.txt',
                              detector_id=i)
       for i in range(3)]
+
+# This are the other non-ET detectors
 dets = {'Hanford':     GroundDetector('Hanford',     46.4, -119.4, 171.8,
                                       'data/curves_May_2019/aligo_design.txt'),
         'Livingstone': GroundDetector('Livingstone', 30.7,  -90.8, 243.0,
@@ -27,82 +40,72 @@ dets = {'Hanford':     GroundDetector('Hanford',     46.4, -119.4, 171.8,
                                       'data/curves_May_2019/kagra_sqz.txt'),
         'GEO600':      GroundDetector('GEO600',      48.0,    9.8,  68.8,
                                       'data/curves_May_2019/o1.txt')}
-obs_time = t_obs*365*24*3600.
-freqs = np.linspace(10., 1010., 101)
-dfreq = np.mean(np.diff(freqs))
 
+
+def compute_N_ell(mc, no_autos):
+    nl = 1./(np.sum(mc.get_G_ell(0., freqs, nside,
+                                 no_autos=no_autos),
+                    axis=0) * obs_time * dfreq)
+    return nl
+
+
+# OK, so say you want to calculate stuff for Hanford-Livingstone
 print("HL")
-no_autos_HL = np.ones(2, dtype=bool)
-mc_HL = MapCalculatorFromArray([dets['Hanford'], dets['Livingstone']],
-                               f_pivot=f_ref)
-nl_HL = 1./(np.sum(mc_HL.get_G_ell(0., freqs, nside,
-                                   no_autos=no_autos_HL),
-                   axis=0) * obs_time * dfreq)
+# You need to declare the map calculator as follows:
+detectors = [dets['Hanford'], dets['Livingstone']]
+mc_HL = MapCalculatorFromArray(detectors, f_pivot=f_ref)
+# And this is how you calculate the corresponding noise power spectrum
+# Note that you need to specify the detectors whose auto-correlations
+# you want to ignore. In this case it's both of them:
+no_autos = [True, True]
+nl_HL = compute_N_ell(mc_HL, no_autos)
 
+# OK, same as above, but now we add Virgo, and we want to
+# check what happens if we include the Hanford auto-correlation
+# (but not the other ones)
 print("HLV")
-no_autos_HLV = np.ones(3, dtype=bool)
-mc_HLV = MapCalculatorFromArray([dets['Hanford'], dets['Livingstone'],
-                                 dets['VIRGO']], f_pivot=f_ref)
-nl_HLV = 1./(np.sum(mc_HLV.get_G_ell(0., freqs, nside,
-                                     no_autos=no_autos_HLV),
-                    axis=0) * obs_time * dfreq)
+detectors = [dets['Hanford'], dets['Livingstone'], dets['VIRGO']]
+no_autos = [False, True, True]
+mc_HLV = MapCalculatorFromArray(detectors, f_pivot=f_ref)
+nl_HLV = compute_N_ell(mc_HLV, no_autos)
 
-print("ET")
-no_autos_ET = np.zeros(3, dtype=bool)
-rho_ET = np.identity(3)
-for i in range(3):
-    for j in range(i+1, 3):
-        rho_ET[i, j] = rET
-        rho_ET[j, i] = rET
-print(rho_ET)
-print(no_autos_ET)
-mc_ET = MapCalculatorFromArray(et, f_pivot=f_ref, corr_matrix=rho_ET)
-nl_ET = 1./(np.sum(mc_ET.get_G_ell(0., freqs, nside,
-                                   no_autos=no_autos_ET),
-                   axis=0) * obs_time * dfreq)
+# OK, now let's ET. In this case, we need to specify a correlation
+# matrix for ET. This should be 1 in the diagonal and the
+# correlation coefficient in the off-diagonal:
+print("E")
+corr = np.array([[1., rE, rE],
+                 [rE, 1., rE],
+                 [rE, rE, 1.]])
+detectors = et
+# Also, let's include all autos
+no_autos = [False, False, False]
+mc_E = MapCalculatorFromArray(detectors, f_pivot=f_ref,
+                              corr_matrix=corr)
+nl_E = compute_N_ell(mc_E, no_autos)
 
-print("HLE")
-no_autos_HLE = np.ones(5, dtype=bool)
-rho_HLE = np.identity(5)
-for i in range(3):
-    no_autos_HLE[2+i] = False
-    for j in range(i+1, 3):
-        rho_HLE[2+i, 2+j] = rET
-        rho_HLE[2+j, 2+i] = rET
-print(rho_HLE)
-print(no_autos_HLE)
-mc_HLE = MapCalculatorFromArray([dets['Hanford'], dets['Livingstone']] +
-                                et, f_pivot=f_ref, corr_matrix=rho_HLE)
-nl_HLE = 1./(np.sum(mc_HLE.get_G_ell(0., freqs, nside,
-                                     no_autos=no_autos_HLE),
-                    axis=0) * obs_time * dfreq)
-
-print("all")
-no_autos_all = np.ones(8, dtype=bool)
-rho_all = np.identity(8)
-for i in range(3):
-    no_autos_all[5+i] = False
-    for j in range(i+1, 3):
-        rho_all[5+i, 5+j] = rET
-        rho_all[5+j, 5+i] = rET
-print(rho_all)
-print(no_autos_all)
-mc_all = MapCalculatorFromArray([dets['Hanford'], dets['Livingstone'],
-                                 dets['VIRGO'], dets['Kagra'],
-                                 dets['GEO600']] + et,
-                                f_pivot=f_ref, corr_matrix=rho_all)
-nl_all = 1./(np.sum(mc_all.get_G_ell(0., freqs, nside,
-                                     no_autos=no_autos_all),
-                    axis=0) * obs_time * dfreq)
+# Now let's mix H, L, V (no autos) and ET. In total that's 6
+# detectors. First we declare the full correlation matrix
+# and then the auto-correlations to remove.
+print("HLVE")
+detectors = [dets['Hanford'], dets['Livingstone'], dets['VIRGO']] + et
+corr = np.array([[1., 0., 0., 0., 0., 0.],
+                 [0., 1., 0., 0., 0., 0.],
+                 [0., 0., 1., 0., 0., 0.],
+                 [1., 0., 0., 1., rE, rE],
+                 [1., 0., 0., rE, 1., rE],
+                 [1., 0., 0., rE, rE, 1.]])
+no_autos = [True, True, True, False, False, False]
+mc_HLVE = MapCalculatorFromArray(detectors, f_pivot=f_ref,
+                                 corr_matrix=corr)
+nl_HLVE = compute_N_ell(mc_HLVE, no_autos)
 
 ls = np.arange(3*nside)
 plt.figure()
-plt.plot(ls, (ls * nl_HL), 'r-', label='HL')
-plt.plot(ls, (ls * nl_HLV), 'g-', label='HLV')
-plt.plot(ls, (ls * nl_HLE), 'b-', label='HLE')
-plt.plot(ls[::2], (ls * nl_ET)[::2], 'yo', label='ET')
-plt.plot(ls[1::2], (ls * nl_ET)[1::2], 'yx')
-plt.plot(ls, (ls * nl_all), 'k--', label='all')
+plt.plot(ls, (ls * nl_HL), 'r-', label='H+L')
+plt.plot(ls, (ls * nl_HLV), 'g-', label='H(auto)+L+V')
+plt.plot(ls[::2], (ls * nl_E)[::2], 'bo', label='ET')
+plt.plot(ls[1::2], (ls * nl_E)[1::2], 'bx')
+plt.plot(ls, (ls * nl_HLVE), 'b-', label='H+L+V+ET')
 plt.ylim([1.5E-24, 1E-10])
 plt.legend(loc='upper left')
 plt.xlabel(r'$\ell$', fontsize=16)
