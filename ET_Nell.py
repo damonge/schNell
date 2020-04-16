@@ -12,7 +12,7 @@ t_obs = 1
 f_ref = 63
 nside = 64
 
-dets = [GroundDetectorTriangle(name='ET%d' % i, lat=41.9, lon=12.5,
+dets = [GroundDetectorTriangle(name='ET%d' % i, lat=40.1, lon=9.0,
                                fname_psd='data/curves_May_2019/et_d.txt',
                                detector_id=i)
         for i in range(3)]

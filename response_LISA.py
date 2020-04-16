@@ -36,10 +36,10 @@ for i, (f, fc, sfc) in enumerate(zip(freqs, facs, sfac)):
         margins = [0.017] * 4
     else:
         margins = None
-    hp.mollview(np.abs(resp_11), sub=420+2*i+1,# coord=['E', 'G'],
+    hp.mollview(np.abs(resp_11), sub=420+2*i+1,
                 notext=True, cbar=i==3, max=0.14, min=0, margins=margins,
                 title='$%s |{\\cal R}_{11}(f,\\hat{\\bf n})|,\\,\\,f=%s\\,{\\rm Hz}$' % (sfc, fs))
-    hp.mollview(np.abs(resp_12), sub=420+2*i+2,# coord=['E', 'G'],
+    hp.mollview(np.abs(resp_12), sub=420+2*i+2,
                 notext=True, cbar=i==3, max=0.07, min=0, margins=margins,
                 title='$%s |{\\cal R}_{12}(f,\\hat{\\bf n})|,\\,\\,f=%s\\,{\\rm Hz}$' % (sfc, fs))
 plt.savefig("plots/antenna_LISA.pdf", bbox_inches='tight')
