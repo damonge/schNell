@@ -49,11 +49,11 @@ for i, lf in enumerate([1, 2, 3]):
     mn, mx = compute_nice_minmax(np.real(resp_HL))
     hp.mollview(np.real(resp_HL), sub=420+2*i+1,
                 notext=True, cbar=True, min=mn, max=mx,
-                title=r'${\rm Re}({\cal R}_{\rm HL}(f, \hat{\bf n})),\,\,f=10^{%d}\,{\rm Hz}$' % lf)
+                title=r'${\rm Re}({\cal A}_{\rm HL}(f, \hat{\bf n})),\,\,f=10^{%d}\,{\rm Hz}$' % lf)
     mn, mx = compute_nice_minmax(np.real(resp_HV))
     hp.mollview(np.real(resp_HV), sub=420+2*i+2,
                 notext=True, cbar=True, min=mn, max=mx,
-                title=r'${\rm Re}({\cal R}_{\rm HV}(f, \hat{\bf n})),\,\,f=10^{%d}\,{\rm Hz}$' % lf)
+                title=r'${\rm Re}({\cal A}_{\rm HV}(f, \hat{\bf n})),\,\,f=10^{%d}\,{\rm Hz}$' % lf)
 gamma_HL = np.real(mc_HL.get_gamma(0, 1, 0., f, theta, phi, inc_baseline=False))
 gamma_HV = np.real(mc_HV.get_gamma(0, 1, 0., f, theta, phi, inc_baseline=False))
 mn, mx = compute_nice_minmax(gamma_HL)

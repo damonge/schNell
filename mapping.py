@@ -483,6 +483,10 @@ class MapCalculatorFromArray(MapCalculator):
             if len(no_autos) != self.ndet:
                 raise ValueError("No autos should have %d elements" %
                                  self.ndet)
+        if np.ndim(no_autos) == 1:
+            no_autos = np.diag(no_autos)
+        no_autos = np.array(no_autos)
+
         t_use = np.atleast_1d(t)
         f_use = np.atleast_1d(f)
 
@@ -512,7 +516,7 @@ class MapCalculatorFromArray(MapCalculator):
                            dtype=np.cdouble)
         for i1 in range(self.ndet):
             for i2 in range(i1, self.ndet):
-                if i1 == i2 and no_autos[i1]:
+                if no_autos[i1, i2]:
                     continue
                 gamma = self._get_gamma_ij(i1, i2, t_use, f_use,
                                            ct, st, cp, sp,
@@ -543,13 +547,13 @@ class MapCalculatorFromArray(MapCalculator):
                         for iC in range(self.ndet):
                             gBCr = galms_r[iB, iC, i_t, i_f, :]
                             gBCi = galms_i[iB, iC, i_t, i_f, :]
-                            if iB == iC and no_autos[iB]:
+                            if no_autos[iB, iC]:
                                 continue
                             for iD in range(self.ndet):
                                 iS_CD = iS_f[i_f, iC, iD]
                                 gADr = galms_r[iA, iD, i_t, i_f, :]
                                 gADi = galms_i[iA, iD, i_t, i_f, :]
-                                if iA == iD and no_autos[iA]:
+                                if no_autos[iA, iD]:
                                     continue
                                 clr = hp.alm2cl(gBCr, gADr)
                                 cli = hp.alm2cl(gBCi, gADi)

@@ -79,7 +79,7 @@ nl_total_b = 1./(np.sum(glb, axis=0) * obs_time)
 ls = np.arange(3*nside)
 
 plt.figure()
-plt.plot(ls[::2], ((ls+0.5)*nl_total_b)[::2], 'ro-', label='Single-detector (even $\\ell$)')
+plt.plot(ls[::2], ((ls+0.5)*nl_total_b)[::2], 'ko--', label='Single-detector (even $\\ell$)')
 plt.plot(ls[::2], ((ls+0.5)*nl_total_a)[::2], 'ko-', label='Array (even $\\ell$)')
 plt.plot(ls[1::2], ((ls+0.5)*nl_total_a)[1::2], 'kx', label='Array (odd $\\ell$)')
 plt.xlim([1, 20])

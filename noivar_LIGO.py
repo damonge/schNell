@@ -14,15 +14,13 @@ f_ref = 63.
 nside = 16
 
 dets = {'Hanford':     GroundDetector('Hanford',     46.4, -119.4, 171.8,
-                                      'data/curves_May_2019/aligo_design.txt'),
+                                      'data/curves_May_2019/NewaPlusLIGO.dat'),
         'Livingstone': GroundDetector('Livingstone', 30.7,  -90.8, 243.0,
-                                      'data/curves_May_2019/aligo_design.txt'),
+                                      'data/curves_May_2019/NewaPlusLIGO.dat'),
         'VIRGO':       GroundDetector('VIRGO',       43.6,   10.5, 116.5,
-                                      'data/curves_May_2019/advirgo_sqz.txt'),
+                                      'data/curves_May_2019/NewVirgoO5High.dat'),
         'Kagra':       GroundDetector('Kagra',       36.3,  137.2, 225.0,
-                                      'data/curves_May_2019/kagra_sqz.txt'),
-        'GEO600':      GroundDetector('GEO600',      48.0,    9.8,  68.8,
-                                      'data/curves_May_2019/o1.txt')}
+                                      'data/curves_May_2019/NewKAGRA128Mpc.dat')}
 # Initialize the map calculator
 mcal_hl = MapCalculatorFromArray([dets['Hanford'], dets['Livingstone']],
                                  f_pivot=f_ref)
@@ -90,10 +88,10 @@ def make_videos(inoi_plot, prefix, remove_frames=True):
 
 
 make_videos(inoi_hl, 'plots/vid_hl', remove_frames=True)
-plot_inoise_map(inoi_hl[0], lims=[0, 4],
+plot_inoise_map(inoi_hl[0], lims=[0, 18.0],
                 which='HL, instantaneous',
                 figname='plots/noivar_hl_inst.pdf')
-plot_inoise_map(np.mean(inoi_hl, axis=0), lims=[0, 2.3],
+plot_inoise_map(np.mean(inoi_hl, axis=0), lims=[0, 9.5],
                 which='HL, integrated',
                 figname='plots/noivar_hl_cumul.pdf')
 plt.show()
@@ -101,10 +99,10 @@ plt.show()
 inoi = mcal_all.get_Ninv_t(t_frames, freqs, nside, no_autos=True)
 
 make_videos(inoi, 'plots/vid_all', remove_frames=True)
-plot_inoise_map(inoi[0], lims=[0, 8],
+plot_inoise_map(inoi[0], lims=[0, 18.5],
                 which='All, instantaneous',
                 figname='plots/noivar_all_inst.pdf')
-plot_inoise_map(np.mean(inoi, axis=0), lims=[0, 7.3],
+plot_inoise_map(np.mean(inoi, axis=0), lims=[0, 12.0],
                 which='All, integrated',
                 figname='plots/noivar_all_cumul.pdf')
 plt.show()
