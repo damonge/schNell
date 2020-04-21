@@ -1,0 +1,599 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Detectors &mdash; snell 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'./',
+              VERSION:'0.1.0',
+              LANGUAGE:'None',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Map calculators" href="mapping.html" />
+    <link rel="prev" title="API Documentation" href="api.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> snell
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Overview</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="api.html">API Documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Detectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mapping.html">Map calculators</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">snell</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="api.html">API Documentation</a> &raquo;</li>
+        
+      <li>Detectors</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/detector.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-snell.detector">
+<span id="detectors"></span><h1>Detectors<a class="headerlink" href="#module-snell.detector" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="snell.detector.Detector">
+<em class="property">class </em><code class="descclassname">snell.detector.</code><code class="descname">Detector</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snell/detector.html#Detector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snell.detector.Detector" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="#snell.detector.Detector" title="snell.detector.Detector"><code class="xref py py-class docutils literal notranslate"><span class="pre">Detector</span></code></a> objects encode information about individual
+GW detectors. The most relevant quantities are:</p>
+<ul class="simple">
+<li>Detector position.</li>
+<li>Detector transfer function.</li>
+<li>Unit vectors in arm directions.</li>
+<li>Detector response tensor.</li>
+<li>Noise PSDs.</li>
+</ul>
+<p>Baseline <a class="reference internal" href="#snell.detector.Detector" title="snell.detector.Detector"><code class="xref py py-class docutils literal notranslate"><span class="pre">Detector</span></code></a>s serve only as a superclass for all
+other detector types. Do not use them.</p>
+<dl class="method">
+<dt id="snell.detector.Detector.get_Fp">
+<code class="descname">get_Fp</code><span class="sig-paren">(</span><em>t</em>, <em>f</em>, <em>e_p</em>, <em>e_x</em>, <em>nv</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snell/detector.html#Detector.get_Fp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snell.detector.Detector.get_Fp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the quantity:</p>
+<div class="math notranslate nohighlight">
+\[F^p(f,\hat{n}) = a^{ij}e^p_{ij}\exp(i2\pi f\hat{n} {\bf x})\]</div>
+<p>(i.e. Eq. 12 of the companion paper).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>t</strong> – array of size <cite>N_t</cite> containing observing
+times (in s).</li>
+<li><strong>f</strong> – array of size <cite>N_f</cite> containing frequencies
+(in Hz).</li>
+<li><strong>ep</strong> – array of shape <cite>[3, 3, N_pix]</cite> containing the
+“+” polarization tensor at <cite>N_pix</cite> different
+sky positions.</li>
+<li><strong>ex</strong> – same as <cite>ep</cite> for the “x” polarization tensor.</li>
+<li><strong>nv</strong> – array of shape <cite>[3, N_pix]</cite> containing the
+unit vector pointing in the direction of
+<cite>N_pix</cite> sky positions.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">2 arrays of shape <cite>[N_t, N_f, N_pix]</cite>                 containing <span class="math notranslate nohighlight">\(F^+\)</span> and <span class="math notranslate nohighlight">\(F^\times\)</span>                 as a function of time, frequency and sky position.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">array_like</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="snell.detector.Detector.get_position">
+<code class="descname">get_position</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snell/detector.html#Detector.get_position"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snell.detector.Detector.get_position" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a 2D array containing the 3D position of
+the detector at a series of times. The output array
+has shape [3, N_t], where N_t is the size of <cite>t</cite>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>t</strong> – time of observation (in seconds).</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">detector position (in m) as a function                 of time.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">array_like</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="snell.detector.Detector.get_transfer">
+<code class="descname">get_transfer</code><span class="sig-paren">(</span><em>u</em>, <em>f</em>, <em>nv</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snell/detector.html#Detector.get_transfer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snell.detector.Detector.get_transfer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the detector transfer function as a
+funciton of position, frequency and sky coordinates.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>u</strong> – 2D array of size <cite>[3, N_t]</cite> containing the unit
+vector pointing along one of the detector arms
+at <cite>N_t</cite> different time intervals.</li>
+<li><strong>f</strong> – 1D array of frequencies (in Hz).</li>
+<li><strong>nv</strong> – 2D array of shape <cite>[3, N_pix]</cite> containining the
+normalized coordinates of <cite>N_pix</cite> points in the
+celestial sphere.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">array of shape <cite>[N_t, N_f, N_pix]</cite>                 containing the transfer function as a function                 of time, frequency and sky position.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">array_like</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="snell.detector.Detector.get_uu_vv">
+<code class="descname">get_uu_vv</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snell/detector.html#Detector.get_uu_vv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snell.detector.Detector.get_uu_vv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the outer product of the detector arm
+unit vectors as a function of time.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>t</strong> – array of size <cite>N_t</cite> containing different
+observing times (in s).</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">2 arrays of shape <cite>[3, 3, N_t]</cite>                 containing the outer products of the unit                 vectors pointing in the directions of the                 two detector arms.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">array_like</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="snell.detector.Detector.psd">
+<code class="descname">psd</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snell/detector.html#Detector.psd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snell.detector.Detector.psd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns noise PSD as a function of frequency.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>f</strong> – array of frequencies (in Hz).</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">array of PSD values in units of                 1/Hz.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">array_like</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="snell.detector.GroundDetector">
+<em class="property">class </em><code class="descclassname">snell.detector.</code><code class="descname">GroundDetector</code><span class="sig-paren">(</span><em>name</em>, <em>lat</em>, <em>lon</em>, <em>alpha</em>, <em>fname_psd</em>, <em>aperture=90</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snell/detector.html#GroundDetector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snell.detector.GroundDetector" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="#snell.detector.GroundDetector" title="snell.detector.GroundDetector"><code class="xref py py-class docutils literal notranslate"><span class="pre">GroundDetector</span></code></a>s represent detectors located at fixed
+position on Earth.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> – detector name.</li>
+<li><strong>lat</strong> – latitude in degrees.</li>
+<li><strong>lon</strong> – longitude in degrees.</li>
+<li><strong>alpha</strong> – orientation angle, defined as the angle between
+the vertex bisector and the local parallel.
+In degrees.</li>
+<li><strong>fname_psd</strong> – path to file containing the detector’s noise
+curve. The file should contain two columns,
+corresponding to the frequency (in Hz) and the
+corresponding value of the strain-level noise
+(in units of Hz:math:<cite>^{-1/2}</cite>).</li>
+<li><strong>aperture</strong> – arm aperture angle (in degrees).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="snell.detector.GroundDetector.get_position">
+<code class="descname">get_position</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snell/detector.html#GroundDetector.get_position"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snell.detector.GroundDetector.get_position" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a 2D array containing the 3D position of
+the detector at a series of times. The output array
+has shape [3, N_t], where N_t is the size of <cite>t</cite>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">We assume the Earth is a sphere of radius
+6371 km that performs a full rotation every
+24 h exactly.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>t</strong> – time of observation (in seconds).</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">detector position (in m) as a function                 of time.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">array_like</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="snell.detector.GroundDetector.get_u_v">
+<code class="descname">get_u_v</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snell/detector.html#GroundDetector.get_u_v"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snell.detector.GroundDetector.get_u_v" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns unit vectors in the directions of the
+detector arms as a function of time.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>t</strong> – array of size <cite>N_t</cite> containing different
+observing times (in s).</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">2 arrays of shape <cite>[3, N_t]</cite>                 containing the arm unit vectors.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">array_like</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="snell.detector.GroundDetectorTriangle">
+<em class="property">class </em><code class="descclassname">snell.detector.</code><code class="descname">GroundDetectorTriangle</code><span class="sig-paren">(</span><em>name</em>, <em>lat</em>, <em>lon</em>, <em>fname_psd</em>, <em>detector_id</em>, <em>beta0_deg=0</em>, <em>arm_length_km=10.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snell/detector.html#GroundDetectorTriangle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snell.detector.GroundDetectorTriangle" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="#snell.detector.GroundDetectorTriangle" title="snell.detector.GroundDetectorTriangle"><code class="xref py py-class docutils literal notranslate"><span class="pre">GroundDetectorTriangle</span></code></a>s represent detectors in a
+triangular configureation located at fixed position on
+Earth (e.g. the Einstein Telescope).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> – detector name.</li>
+<li><strong>lat</strong> – latitude of the triangle’s barycenter in degrees.</li>
+<li><strong>lon</strong> – longitude in degrees.</li>
+<li><strong>fname_psd</strong> – path to file containing the detector’s noise
+curve. The file should contain two columns,
+corresponding to the frequency (in Hz) and the
+corresponding value of the strain-level noise
+(in units of Hz:math:<cite>^{-1/2}</cite>).</li>
+<li><strong>detector_id</strong> – detector number (0, 1 or 2).</li>
+<li><strong>beta0_deg</strong> – orientation angle, defined as the angle between
+the vertex with id 0 and the local meridian.</li>
+<li><strong>arm_length_km</strong> – arm length in km.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="snell.detector.GroundDetectorTriangle.get_position">
+<code class="descname">get_position</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snell/detector.html#GroundDetectorTriangle.get_position"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snell.detector.GroundDetectorTriangle.get_position" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a 2D array containing the 3D position of
+the detector at a series of times. The output array
+has shape [3, N_t], where N_t is the size of <cite>t</cite>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">We assume the Earth is a sphere of radius
+6371 km that performs a full rotation every
+24 h exactly.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>t</strong> – time of observation (in seconds).</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">detector position (in m) as a function                 of time.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">array_like</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="snell.detector.GroundDetectorTriangle.get_u_v">
+<code class="descname">get_u_v</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snell/detector.html#GroundDetectorTriangle.get_u_v"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snell.detector.GroundDetectorTriangle.get_u_v" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns unit vectors in the directions of the
+detector arms as a function of time.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>t</strong> – array of size <cite>N_t</cite> containing different
+observing times (in s).</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">2 arrays of shape <cite>[3, N_t]</cite>                 containing the arm unit vectors.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">array_like</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="snell.detector.LISADetector">
+<em class="property">class </em><code class="descclassname">snell.detector.</code><code class="descname">LISADetector</code><span class="sig-paren">(</span><em>detector_id</em>, <em>is_L5Gm=False</em>, <em>map_transfer=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snell/detector.html#LISADetector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snell.detector.LISADetector" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="#snell.detector.LISADetector" title="snell.detector.LISADetector"><code class="xref py py-class docutils literal notranslate"><span class="pre">LISADetector</span></code></a>s can be used to describe the properties
+of the LISA network.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>detector_id</strong> – detector number (0, 1 or 2).</li>
+<li><strong>is_L5Gm</strong> (<em>bool</em>) – whether the arm length should be
+5E9 meters (otherwise 2.5E9 meters will be assumed)
+(default <cite>False</cite>).</li>
+<li><strong>map_transfer</strong> – whether the LISA transfer function should
+be assumed (default <cite>True</cite>).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="snell.detector.LISADetector.get_position">
+<code class="descname">get_position</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snell/detector.html#LISADetector.get_position"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snell.detector.LISADetector.get_position" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a 2D array containing the 3D position of
+the detector at a series of times. The output array
+has shape [3, N_t], where N_t is the size of <cite>t</cite>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The spacecraft orbits are calculated using Eq. 1
+of gr-qc/0311069.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>t</strong> – time of observation (in seconds).</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">detector position (in m) as a function                 of time.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">array_like</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="snell.detector.LISADetector.get_u_v">
+<code class="descname">get_u_v</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snell/detector.html#LISADetector.get_u_v"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snell.detector.LISADetector.get_u_v" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns unit vectors in the directions of the
+detector arms as a function of time.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>t</strong> – array of size <cite>N_t</cite> containing different
+observing times (in s).</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">2 arrays of shape <cite>[3, N_t]</cite>                 containing the arm unit vectors.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">array_like</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="snell.detector.LISADetector.psd">
+<code class="descname">psd</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snell/detector.html#LISADetector.psd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snell.detector.LISADetector.psd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns noise PSD as a function of frequency.
+Uses Eq. 1 from arXiv:1803.01944 (without background
+component).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>f</strong> – array of frequencies (in Hz).</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">array of PSD values in units of                 1/Hz.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">array_like</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="mapping.html" class="btn btn-neutral float-right" title="Map calculators" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="api.html" class="btn btn-neutral float-left" title="API Documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, David Alonso
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

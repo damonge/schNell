@@ -2,7 +2,7 @@ import numpy as np
 
 
 class Detector(object):
-    """ `Detector` objects encode information about individual
+    """ :class:`Detector` objects encode information about individual
     GW detectors. The most relevant quantities are:
 
     * Detector position.
@@ -14,11 +14,11 @@ class Detector(object):
     * Detector response tensor.
 
     * Noise PSDs.
+
+    Baseline :class:`Detector`\s serve only as a superclass for all
+    other detector types. Do not use them.
     """
     def __init__(self, name):
-        """ Baseline `Detector` objects only take a name.
-        Do not use them.
-        """
         self.name = name
         raise NotImplementedError("Don't use the bare class")
 
@@ -31,7 +31,7 @@ class Detector(object):
             t: time of observation (in seconds).
 
         Returns:
-            array_like: detector position (in m) as a function
+            array_like: detector position (in m) as a function \
                 of time.
         """
         raise NotImplementedError("get_position not implemented")
@@ -56,8 +56,8 @@ class Detector(object):
                 celestial sphere.
 
         Returns:
-            array_like: array of shape `[N_t, N_f, N_pix]`
-                containing the transfer function as a function
+            array_like: array of shape `[N_t, N_f, N_pix]` \
+                containing the transfer function as a function \
                 of time, frequency and sky position.
         """
         # u is [3, nt]
@@ -76,9 +76,9 @@ class Detector(object):
                 observing times (in s).
 
         Returns:
-            array_like: 2 arrays of shape `[3, 3, N_t]`
-                containing the outer products of the unit
-                vectors pointing in the directions of the
+            array_like: 2 arrays of shape `[3, 3, N_t]` \
+                containing the outer products of the unit \
+                vectors pointing in the directions of the \
                 two detector arms.
         """
         u, v = self.get_u_v(t)
@@ -106,8 +106,8 @@ class Detector(object):
                 `N_pix` sky positions.
 
         Returns:
-            array_like: 2 arrays of shape `[N_t, N_f, N_pix]`
-                containing :math:`F^+` and :math:`F^\\times`
+            array_like: 2 arrays of shape `[N_t, N_f, N_pix]` \
+                containing :math:`F^+` and :math:`F^\\times` \
                 as a function of time, frequency and sky position.
         """
         # e_p/e_x is [3, 3, npix]
@@ -154,14 +154,14 @@ class Detector(object):
             f: array of frequencies (in Hz).
 
         Returns:
-            array_like: array of PSD values in units of
+            array_like: array of PSD values in units of \
                 1/Hz.
         """
         return np.exp(2*self.lpsdf(np.log(f)))
 
 
 class GroundDetectorTriangle(Detector):
-    """ `GroundDetectorTriangle`s represent detectors in a
+    """ :class:`GroundDetectorTriangle`\s represent detectors in a
     triangular configureation located at fixed position on
     Earth (e.g. the Einstein Telescope).
 
@@ -235,7 +235,7 @@ class GroundDetectorTriangle(Detector):
             t: time of observation (in seconds).
 
         Returns:
-            array_like: detector position (in m) as a function
+            array_like: detector position (in m) as a function \
                 of time.
         """
         return self._pos_single(t, self.i_d)
@@ -249,7 +249,7 @@ class GroundDetectorTriangle(Detector):
                 observing times (in s).
 
         Returns:
-            array_like: 2 arrays of shape `[3, N_t]`
+            array_like: 2 arrays of shape `[3, N_t]` \
                 containing the arm unit vectors.
         """
         t_use = np.atleast_1d(t)
@@ -267,7 +267,7 @@ class GroundDetectorTriangle(Detector):
 
 
 class GroundDetector(Detector):
-    """ `GroundDetector`s represent detectors located at fixed
+    """ :class:`GroundDetector`\s represent detectors located at fixed
     position on Earth.
 
     Args:
@@ -314,7 +314,7 @@ class GroundDetector(Detector):
             t: time of observation (in seconds).
 
         Returns:
-            array_like: detector position (in m) as a function
+            array_like: detector position (in m) as a function \
                 of time.
         """
         phi = self.phi_e + self.rot_freq_earth * t
@@ -334,7 +334,7 @@ class GroundDetector(Detector):
                 observing times (in s).
 
         Returns:
-            array_like: 2 arrays of shape `[3, N_t]`
+            array_like: 2 arrays of shape `[3, N_t]` \
                 containing the arm unit vectors.
         """
         phi = self.phi_e + self.rot_freq_earth * t
@@ -354,7 +354,7 @@ class GroundDetector(Detector):
 
 
 class LISADetector(Detector):
-    """ `LISADetector`s can be used to describe the properties
+    """ :class:`LISADetector`\s can be used to describe the properties
     of the LISA network.
 
     Args:
@@ -414,7 +414,7 @@ class LISADetector(Detector):
             f: array of frequencies (in Hz).
 
         Returns:
-            array_like: array of PSD values in units of
+            array_like: array of PSD values in units of \
                 1/Hz.
         """
         # Equation 1 from 1803.01944 (without background)
@@ -445,7 +445,7 @@ class LISADetector(Detector):
             t: time of observation (in seconds).
 
         Returns:
-            array_like: detector position (in m) as a function
+            array_like: detector position (in m) as a function \
                 of time.
         """
         return self._pos_single(t, self.i_d)
@@ -483,7 +483,7 @@ class LISADetector(Detector):
                 observing times (in s).
 
         Returns:
-            array_like: 2 arrays of shape `[3, N_t]`
+            array_like: 2 arrays of shape `[3, N_t]` \
                 containing the arm unit vectors.
         """
         t_use = np.atleast_1d(t)
