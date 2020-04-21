@@ -271,6 +271,35 @@ class MapCalculator(object):
     def get_pi_curve(self, t, f, nside, is_fspacing_log=False,
                      no_autos=False, beta_range=[-10, 10],
                      nsigma=1):
+        """ Computes the power-law-integrated (PI) sensitivity curve
+        for this network (see arXiv:1310.5300).
+
+        Args:
+            t (float or array_like): `N_t` time values (in s). If a single
+                number is passed, then the "rigid network" approximation
+                is used, and this time is interpreted as the total
+                observing time. Otherwise, an integral over time is
+                performed.
+            f: array of `N_f` frequency values (in Hz). This will be the
+                frequencies at which the PI curve will be sampled, and also
+                the frequencies used for numerical integration.
+            nside: HEALPix resolution parameter. Used to create
+                maps of the antenna pattern and computes its sky
+                average.
+            no_autos (bool, or array_like): if a single `True`
+                value, all detector auto-correlations will be
+                removed. If a 1D array, only the auto-correlations
+                for which the array element is `True` will be
+                removed. If a 2D array, all autos and cross-
+                correlations for which the array element is `True`
+                will be removed.
+            beta_range: a list containing the range of power law indices
+                for which the PI curve will be computed.
+            nsigma: S/N of the PI curve (default: 1-sigma).
+
+        Returns:
+            array_like: array of size `N_f`.
+        """
         t_use = np.atleast_1d(t)
         f_use = f
         if is_fspacing_log:

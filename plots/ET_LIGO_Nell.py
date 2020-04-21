@@ -16,19 +16,16 @@ freqs = np.linspace(10., 1010., 101)
 dfreq = np.mean(np.diff(freqs))
 
 et = [snl.GroundDetectorTriangle(name='ET%d' % i, lat=40.1, lon=9.0,
-                                 fname_psd='../data/curves_May_2019/et_d.txt',
-                                 detector_id=i)
+                                 fname_psd='data/ET.txt', detector_id=i)
       for i in range(3)]
 dets = {'Hanford':     snl.GroundDetector('Hanford',     46.4, -119.4, 171.8,
-                                          '../data/curves_May_2019/NewaPlusLIGO.dat'),
+                                          'data/aLIGO.txt'),
         'Livingstone': snl.GroundDetector('Livingstone', 30.7,  -90.8, 243.0,
-                                          '../data/curves_May_2019/NewaPlusLIGO.dat'),
-        'VIRGO':       snl.GroundDetector('VIRGO',       43.6,   10.5, 116.5,
-                                          '../data/curves_May_2019/NewVirgoO5High.dat'),
-        'Kagra':       snl.GroundDetector('Kagra',       36.3,  137.2, 225.0,
-                                          '../data/curves_May_2019/NewKAGRA128Mpc.dat'),
-        'GEO600':      snl.GroundDetector('GEO600',      48.0,    9.8,  68.8,
-                                          '../data/curves_May_2019/o1.txt')}
+                                          'data/aLIGO.txt'),
+        'VIRGO':       snl.GroundDetector('Virgo',       43.6,   10.5, 116.5,
+                                          'data/Virgo.txt'),
+        'Kagra':       snl.GroundDetector('KAGRA',       36.3,  137.2, 225.0,
+                                          'data/KAGRA.txt')}
 
 print("HLVK")
 detectors = [dets['Hanford'], dets['Livingstone'], dets['VIRGO'], dets['Kagra']]

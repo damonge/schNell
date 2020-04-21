@@ -13,13 +13,13 @@ obs_time = t_obs*365*24*3600.
 freqs = np.linspace(10., 1010., 101)
 
 dets = [snl.GroundDetector('Hanford',     46.4, -119.4, 171.8,
-                           '../data/curves_May_2019/NewaPlusLIGO.dat'),
+                           'data/aLIGO.txt'),
         snl.GroundDetector('Livingstone', 30.7,  -90.8, 243.0,
-                           '../data/curves_May_2019/NewaPlusLIGO.dat'),
+                           'data/aLIGO.txt'),
         snl.GroundDetector('Virgo',       43.6,   10.5, 116.5,
-                           '../data/curves_May_2019/NewVirgoO5High.dat'),
+                           'data/Virgo.txt'),
         snl.GroundDetector('KAGRA',       36.3,  137.2, 225.0,
-                           '../data/curves_May_2019/NewKAGRA128Mpc.dat')]
+                           'data/KAGRA.txt')]
 
 print("HL")
 mc = snl.MapCalculator(dets[:2], f_pivot=f_ref)
