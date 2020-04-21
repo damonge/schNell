@@ -2,24 +2,23 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import healpy as hp
-from detector import LISADetector
-from mapping import MapCalculatorFromArray
+import schnell as snl
 from matplotlib import rc
 rc('font', **{'family': 'sans-serif',
               'sans-serif': ['Helvetica'],
               'size': 15})
 rc('text', usetex=True)
 
-det_0 = LISADetector(0, map_transfer=True)
-det_1 = LISADetector(1, map_transfer=True)
-det_2 = LISADetector(2, map_transfer=True)
+det_0 = snl.LISADetector(0, map_transfer=True)
+det_1 = snl.LISADetector(1, map_transfer=True)
+det_2 = snl.LISADetector(2, map_transfer=True)
 # Correlation between detectors
 r = -0.2
 rho = np.array([[1, r, r],
                 [r, 1, r],
                 [r, r, 1]])
-mc = MapCalculatorFromArray([det_0, det_1, det_2], f_pivot=1E-2,
-                            corr_matrix=rho)
+mc = snl.MapCalculator([det_0, det_1, det_2], f_pivot=1E-2,
+                       corr_matrix=rho)
 nside = 16
 
 
@@ -29,7 +28,7 @@ freqs = 10.**lfreqs
 # One year
 obs_time = 365*24*3600.
 # 1-day intervals
-nframes = 365
+nframes = 24#365
 t_frames = np.linspace(0, obs_time, nframes+1)[:-1]
 inoi_tot = mc.get_Ninv_t(t_frames, freqs, nside,
                          is_fspacing_log=True)
@@ -84,11 +83,11 @@ def make_videos(inoi_plot, prefix, remove_frames=True):
         os.system('rm '+prefix+'*.png')
 
 
-make_videos(inoi_tot, 'plots/vid_LISA_tt', remove_frames=True)
-plot_inoise_map(inoi_tot[0], lims=[0, 7],
+#make_videos(inoi_tot, 'vid_LISA_tt', remove_frames=True)
+plot_inoise_map(inoi_tot[0], lims=[0, 3.5],
                 which='Instantaneous',
-                figname='plots/noivar_LISA_tt_inst.pdf')
-plot_inoise_map(np.mean(inoi_tot, axis=0), lims=[0, 3.5],
+                figname='noivar_LISA_tt_inst.pdf')
+plot_inoise_map(np.mean(inoi_tot, axis=0), lims=[0, 1.8],
                 which='Integrated',
-                figname='plots/noivar_LISA_tt_cumul.pdf')
+                figname='noivar_LISA_tt_cumul.pdf')
 plt.show()
