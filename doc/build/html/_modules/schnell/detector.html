@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>snell.detector &mdash; snell 0.1.0 documentation</title>
+  <title>schnell.detector &mdash; schnell 0.1.0 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
           
 
           
-            <a href="../../index.html" class="icon icon-home"> snell
+            <a href="../../index.html" class="icon icon-home"> schnell
           
 
           
@@ -106,7 +106,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../../index.html">snell</a>
+          <a href="../../index.html">schnell</a>
         
       </nav>
 
@@ -139,7 +139,7 @@
         
           <li><a href="../index.html">Module code</a> &raquo;</li>
         
-      <li>snell.detector</li>
+      <li>schnell.detector</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -154,11 +154,11 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <h1>Source code for snell.detector</h1><div class="highlight"><pre>
+  <h1>Source code for schnell.detector</h1><div class="highlight"><pre>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 
-<div class="viewcode-block" id="Detector"><a class="viewcode-back" href="../../detector.html#snell.detector.Detector">[docs]</a><span class="k">class</span> <span class="nc">Detector</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="Detector"><a class="viewcode-back" href="../../detector.html#schnell.detector.Detector">[docs]</a><span class="k">class</span> <span class="nc">Detector</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; :class:`Detector` objects encode information about individual</span>
 <span class="sd">    GW detectors. The most relevant quantities are:</span>
 
@@ -172,14 +172,14 @@
 
 <span class="sd">    * Noise PSDs.</span>
 
-<span class="sd">    Baseline :class:`Detector`\s serve only as a superclass for all</span>
-<span class="sd">    other detector types. Do not use them.</span>
+<span class="sd">    Baseline :class:`Detector` objects serve only as a superclass for</span>
+<span class="sd">    all other detector types. Do not use them.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Don&#39;t use the bare class&quot;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Detector.get_position"><a class="viewcode-back" href="../../detector.html#snell.detector.Detector.get_position">[docs]</a>    <span class="k">def</span> <span class="nf">get_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+<div class="viewcode-block" id="Detector.get_position"><a class="viewcode-back" href="../../detector.html#schnell.detector.Detector.get_position">[docs]</a>    <span class="k">def</span> <span class="nf">get_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Returns a 2D array containing the 3D position of</span>
 <span class="sd">        the detector at a series of times. The output array</span>
 <span class="sd">        has shape [3, N_t], where N_t is the size of `t`.</span>
@@ -199,7 +199,7 @@
         <span class="n">vv</span> <span class="o">=</span> <span class="n">v</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span><span class="o">*</span><span class="n">v</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:,</span> <span class="o">...</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">uu</span><span class="p">,</span> <span class="n">vv</span>
 
-<div class="viewcode-block" id="Detector.get_transfer"><a class="viewcode-back" href="../../detector.html#snell.detector.Detector.get_transfer">[docs]</a>    <span class="k">def</span> <span class="nf">get_transfer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">nv</span><span class="p">):</span>
+<div class="viewcode-block" id="Detector.get_transfer"><a class="viewcode-back" href="../../detector.html#schnell.detector.Detector.get_transfer">[docs]</a>    <span class="k">def</span> <span class="nf">get_transfer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">nv</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Returns the detector transfer function as a</span>
 <span class="sd">        funciton of position, frequency and sky coordinates.</span>
 
@@ -224,7 +224,7 @@
         <span class="n">tr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">u</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">nv</span><span class="p">[</span><span class="mi">0</span><span class="p">])])</span> <span class="o">+</span> <span class="mi">0</span><span class="n">j</span>
         <span class="k">return</span> <span class="n">tr</span></div>
 
-<div class="viewcode-block" id="Detector.get_uu_vv"><a class="viewcode-back" href="../../detector.html#snell.detector.Detector.get_uu_vv">[docs]</a>    <span class="k">def</span> <span class="nf">get_uu_vv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+<div class="viewcode-block" id="Detector.get_uu_vv"><a class="viewcode-back" href="../../detector.html#schnell.detector.Detector.get_uu_vv">[docs]</a>    <span class="k">def</span> <span class="nf">get_uu_vv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Returns the outer product of the detector arm</span>
 <span class="sd">        unit vectors as a function of time.</span>
 
@@ -241,7 +241,7 @@
         <span class="n">u</span><span class="p">,</span> <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_u_v</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_uu_vv_from_u_v</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Detector.get_Fp"><a class="viewcode-back" href="../../detector.html#snell.detector.Detector.get_Fp">[docs]</a>    <span class="k">def</span> <span class="nf">get_Fp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">e_p</span><span class="p">,</span> <span class="n">e_x</span><span class="p">,</span> <span class="n">nv</span><span class="p">):</span>
+<div class="viewcode-block" id="Detector.get_Fp"><a class="viewcode-back" href="../../detector.html#schnell.detector.Detector.get_Fp">[docs]</a>    <span class="k">def</span> <span class="nf">get_Fp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">e_p</span><span class="p">,</span> <span class="n">e_x</span><span class="p">,</span> <span class="n">nv</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Compute the quantity:</span>
 
 <span class="sd">        .. math::</span>
@@ -304,7 +304,7 @@
                               <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                               <span class="n">fill_value</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Detector.psd"><a class="viewcode-back" href="../../detector.html#snell.detector.Detector.psd">[docs]</a>    <span class="k">def</span> <span class="nf">psd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
+<div class="viewcode-block" id="Detector.psd"><a class="viewcode-back" href="../../detector.html#schnell.detector.Detector.psd">[docs]</a>    <span class="k">def</span> <span class="nf">psd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Returns noise PSD as a function of frequency.</span>
 
 <span class="sd">        Args:</span>
@@ -317,9 +317,9 @@
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">lpsdf</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">f</span><span class="p">)))</span></div></div>
 
 
-<div class="viewcode-block" id="GroundDetectorTriangle"><a class="viewcode-back" href="../../detector.html#snell.detector.GroundDetectorTriangle">[docs]</a><span class="k">class</span> <span class="nc">GroundDetectorTriangle</span><span class="p">(</span><span class="n">Detector</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; :class:`GroundDetectorTriangle`\s represent detectors in a</span>
-<span class="sd">    triangular configureation located at fixed position on</span>
+<div class="viewcode-block" id="GroundDetectorTriangle"><a class="viewcode-back" href="../../detector.html#schnell.detector.GroundDetectorTriangle">[docs]</a><span class="k">class</span> <span class="nc">GroundDetectorTriangle</span><span class="p">(</span><span class="n">Detector</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; :class:`GroundDetectorTriangle` objects represent detectors</span>
+<span class="sd">    in a triangular configureation located at fixed position on</span>
 <span class="sd">    Earth (e.g. the Einstein Telescope).</span>
 
 <span class="sd">    Args:</span>
@@ -379,7 +379,7 @@
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_pos_single</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
                          <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)])</span>
 
-<div class="viewcode-block" id="GroundDetectorTriangle.get_position"><a class="viewcode-back" href="../../detector.html#snell.detector.GroundDetectorTriangle.get_position">[docs]</a>    <span class="k">def</span> <span class="nf">get_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+<div class="viewcode-block" id="GroundDetectorTriangle.get_position"><a class="viewcode-back" href="../../detector.html#schnell.detector.GroundDetectorTriangle.get_position">[docs]</a>    <span class="k">def</span> <span class="nf">get_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Returns a 2D array containing the 3D position of</span>
 <span class="sd">        the detector at a series of times. The output array</span>
 <span class="sd">        has shape [3, N_t], where N_t is the size of `t`.</span>
@@ -397,7 +397,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pos_single</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">i_d</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="GroundDetectorTriangle.get_u_v"><a class="viewcode-back" href="../../detector.html#snell.detector.GroundDetectorTriangle.get_u_v">[docs]</a>    <span class="k">def</span> <span class="nf">get_u_v</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+<div class="viewcode-block" id="GroundDetectorTriangle.get_u_v"><a class="viewcode-back" href="../../detector.html#schnell.detector.GroundDetectorTriangle.get_u_v">[docs]</a>    <span class="k">def</span> <span class="nf">get_u_v</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Returns unit vectors in the directions of the</span>
 <span class="sd">        detector arms as a function of time.</span>
 
@@ -423,9 +423,9 @@
         <span class="k">return</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span></div></div>
 
 
-<div class="viewcode-block" id="GroundDetector"><a class="viewcode-back" href="../../detector.html#snell.detector.GroundDetector">[docs]</a><span class="k">class</span> <span class="nc">GroundDetector</span><span class="p">(</span><span class="n">Detector</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; :class:`GroundDetector`\s represent detectors located at fixed</span>
-<span class="sd">    position on Earth.</span>
+<div class="viewcode-block" id="GroundDetector"><a class="viewcode-back" href="../../detector.html#schnell.detector.GroundDetector">[docs]</a><span class="k">class</span> <span class="nc">GroundDetector</span><span class="p">(</span><span class="n">Detector</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; :class:`GroundDetector` objects represent detectors</span>
+<span class="sd">    located at fixed position on Earth.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        name: detector name.</span>
@@ -458,7 +458,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">sabm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">beta</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_read_psd</span><span class="p">(</span><span class="n">fname_psd</span><span class="p">)</span>
 
-<div class="viewcode-block" id="GroundDetector.get_position"><a class="viewcode-back" href="../../detector.html#snell.detector.GroundDetector.get_position">[docs]</a>    <span class="k">def</span> <span class="nf">get_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+<div class="viewcode-block" id="GroundDetector.get_position"><a class="viewcode-back" href="../../detector.html#schnell.detector.GroundDetector.get_position">[docs]</a>    <span class="k">def</span> <span class="nf">get_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Returns a 2D array containing the 3D position of</span>
 <span class="sd">        the detector at a series of times. The output array</span>
 <span class="sd">        has shape [3, N_t], where N_t is the size of `t`.</span>
@@ -482,7 +482,7 @@
                                              <span class="bp">self</span><span class="o">.</span><span class="n">st</span><span class="o">*</span><span class="n">sp</span><span class="p">,</span>
                                              <span class="bp">self</span><span class="o">.</span><span class="n">ct</span><span class="o">*</span><span class="n">o</span><span class="p">])</span></div>
 
-<div class="viewcode-block" id="GroundDetector.get_u_v"><a class="viewcode-back" href="../../detector.html#snell.detector.GroundDetector.get_u_v">[docs]</a>    <span class="k">def</span> <span class="nf">get_u_v</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+<div class="viewcode-block" id="GroundDetector.get_u_v"><a class="viewcode-back" href="../../detector.html#schnell.detector.GroundDetector.get_u_v">[docs]</a>    <span class="k">def</span> <span class="nf">get_u_v</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Returns unit vectors in the directions of the</span>
 <span class="sd">        detector arms as a function of time.</span>
 
@@ -510,9 +510,9 @@
         <span class="k">return</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span></div></div>
 
 
-<div class="viewcode-block" id="LISADetector"><a class="viewcode-back" href="../../detector.html#snell.detector.LISADetector">[docs]</a><span class="k">class</span> <span class="nc">LISADetector</span><span class="p">(</span><span class="n">Detector</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; :class:`LISADetector`\s can be used to describe the properties</span>
-<span class="sd">    of the LISA network.</span>
+<div class="viewcode-block" id="LISADetector"><a class="viewcode-back" href="../../detector.html#schnell.detector.LISADetector">[docs]</a><span class="k">class</span> <span class="nc">LISADetector</span><span class="p">(</span><span class="n">Detector</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; :class:`LISADetector` objects can be used to describe</span>
+<span class="sd">    the properties of the LISA network.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        detector_id: detector number (0, 1 or 2).</span>
@@ -562,7 +562,7 @@
                   <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">phase2</span><span class="p">)</span><span class="o">*</span><span class="n">sinc2</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">tr</span>
 
-<div class="viewcode-block" id="LISADetector.psd"><a class="viewcode-back" href="../../detector.html#snell.detector.LISADetector.psd">[docs]</a>    <span class="k">def</span> <span class="nf">psd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
+<div class="viewcode-block" id="LISADetector.psd"><a class="viewcode-back" href="../../detector.html#schnell.detector.LISADetector.psd">[docs]</a>    <span class="k">def</span> <span class="nf">psd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Returns noise PSD as a function of frequency.</span>
 <span class="sd">        Uses Eq. 1 from arXiv:1803.01944 (without background</span>
 <span class="sd">        component).</span>
@@ -590,7 +590,7 @@
             <span class="n">Rinv</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mf">0.6</span> <span class="o">*</span> <span class="p">(</span><span class="n">f</span> <span class="o">/</span> <span class="n">fstar</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">3</span>
             <span class="k">return</span> <span class="n">Pn</span> <span class="o">*</span> <span class="n">Rinv</span></div>
 
-<div class="viewcode-block" id="LISADetector.get_position"><a class="viewcode-back" href="../../detector.html#snell.detector.LISADetector.get_position">[docs]</a>    <span class="k">def</span> <span class="nf">get_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+<div class="viewcode-block" id="LISADetector.get_position"><a class="viewcode-back" href="../../detector.html#schnell.detector.LISADetector.get_position">[docs]</a>    <span class="k">def</span> <span class="nf">get_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Returns a 2D array containing the 3D position of</span>
 <span class="sd">        the detector at a series of times. The output array</span>
 <span class="sd">        has shape [3, N_t], where N_t is the size of `t`.</span>
@@ -631,7 +631,7 @@
                            <span class="n">e2</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">a</span><span class="o">-</span><span class="n">b</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">R_AU</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">])</span>
 
-<div class="viewcode-block" id="LISADetector.get_u_v"><a class="viewcode-back" href="../../detector.html#snell.detector.LISADetector.get_u_v">[docs]</a>    <span class="k">def</span> <span class="nf">get_u_v</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+<div class="viewcode-block" id="LISADetector.get_u_v"><a class="viewcode-back" href="../../detector.html#schnell.detector.LISADetector.get_u_v">[docs]</a>    <span class="k">def</span> <span class="nf">get_u_v</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Returns unit vectors in the directions of the</span>
 <span class="sd">        detector arms as a function of time.</span>
 

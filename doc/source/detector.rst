@@ -1,6 +1,6 @@
 Detectors
 =============
 
-.. automodule:: snell.detector
+.. automodule:: schnell.detector
    :members:
                    

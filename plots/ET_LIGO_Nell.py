@@ -1,5 +1,5 @@
 import numpy as np
-import snell as snl
+import schnell as snl
 import matplotlib.pyplot as plt
 from matplotlib import rc
 rc('font', **{'family': 'sans-serif',
@@ -75,5 +75,5 @@ plt.ylim([3E-24, 1E-10])
 plt.xlim([1,100])
 plt.legend(loc='upper left', fontsize='x-large', frameon=False)
 plt.gca().tick_params(labelsize="large")
-plt.savefig("ET_LIGO_Nell.pdf", bbox_inches='tight')
+plt.savefig("nl_ET_LIGO.pdf", bbox_inches='tight')
 plt.show()

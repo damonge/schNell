@@ -1,6 +1,6 @@
 Map calculators
 ===============
 
-.. automodule:: snell.mapping
+.. automodule:: schnell.mapping
    :members:
 

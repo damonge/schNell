@@ -1,2 +1,0 @@
-from .mapping import MapCalculator  # noqa
-from .detector

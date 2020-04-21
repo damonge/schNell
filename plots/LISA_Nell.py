@@ -1,5 +1,5 @@
 import numpy as np
-import snell as snl
+import schnell as snl
 import matplotlib.pyplot as plt
 from matplotlib import rc
 rc('font', **{'family': 'sans-serif',

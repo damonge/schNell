@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Detectors &mdash; snell 0.1.0 documentation</title>
+  <title>Detectors &mdash; schnell 0.1.0 documentation</title>
   
 
   
@@ -60,7 +60,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home"> snell
+            <a href="index.html" class="icon icon-home"> schnell
           
 
           
@@ -112,7 +112,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">snell</a>
+          <a href="index.html">schnell</a>
         
       </nav>
 
@@ -164,12 +164,12 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="module-snell.detector">
-<span id="detectors"></span><h1>Detectors<a class="headerlink" href="#module-snell.detector" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-schnell.detector">
+<span id="detectors"></span><h1>Detectors<a class="headerlink" href="#module-schnell.detector" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
-<dt id="snell.detector.Detector">
-<em class="property">class </em><code class="descclassname">snell.detector.</code><code class="descname">Detector</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snell/detector.html#Detector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snell.detector.Detector" title="Permalink to this definition">¶</a></dt>
-<dd><p><a class="reference internal" href="#snell.detector.Detector" title="snell.detector.Detector"><code class="xref py py-class docutils literal notranslate"><span class="pre">Detector</span></code></a> objects encode information about individual
+<dt id="schnell.detector.Detector">
+<em class="property">class </em><code class="descclassname">schnell.detector.</code><code class="descname">Detector</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/detector.html#Detector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.detector.Detector" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="#schnell.detector.Detector" title="schnell.detector.Detector"><code class="xref py py-class docutils literal notranslate"><span class="pre">Detector</span></code></a> objects encode information about individual
 GW detectors. The most relevant quantities are:</p>
 <ul class="simple">
 <li>Detector position.</li>
@@ -178,11 +178,11 @@ GW detectors. The most relevant quantities are:</p>
 <li>Detector response tensor.</li>
 <li>Noise PSDs.</li>
 </ul>
-<p>Baseline <a class="reference internal" href="#snell.detector.Detector" title="snell.detector.Detector"><code class="xref py py-class docutils literal notranslate"><span class="pre">Detector</span></code></a>s serve only as a superclass for all
-other detector types. Do not use them.</p>
+<p>Baseline <a class="reference internal" href="#schnell.detector.Detector" title="schnell.detector.Detector"><code class="xref py py-class docutils literal notranslate"><span class="pre">Detector</span></code></a> objects serve only as a superclass for
+all other detector types. Do not use them.</p>
 <dl class="method">
-<dt id="snell.detector.Detector.get_Fp">
-<code class="descname">get_Fp</code><span class="sig-paren">(</span><em>t</em>, <em>f</em>, <em>e_p</em>, <em>e_x</em>, <em>nv</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snell/detector.html#Detector.get_Fp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snell.detector.Detector.get_Fp" title="Permalink to this definition">¶</a></dt>
+<dt id="schnell.detector.Detector.get_Fp">
+<code class="descname">get_Fp</code><span class="sig-paren">(</span><em>t</em>, <em>f</em>, <em>e_p</em>, <em>e_x</em>, <em>nv</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/detector.html#Detector.get_Fp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.detector.Detector.get_Fp" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the quantity:</p>
 <div class="math notranslate nohighlight">
 \[F^p(f,\hat{n}) = a^{ij}e^p_{ij}\exp(i2\pi f\hat{n} {\bf x})\]</div>
@@ -217,8 +217,8 @@ unit vector pointing in the direction of
 </dd></dl>
 
 <dl class="method">
-<dt id="snell.detector.Detector.get_position">
-<code class="descname">get_position</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snell/detector.html#Detector.get_position"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snell.detector.Detector.get_position" title="Permalink to this definition">¶</a></dt>
+<dt id="schnell.detector.Detector.get_position">
+<code class="descname">get_position</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/detector.html#Detector.get_position"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.detector.Detector.get_position" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a 2D array containing the 3D position of
 the detector at a series of times. The output array
 has shape [3, N_t], where N_t is the size of <cite>t</cite>.</p>
@@ -237,8 +237,8 @@ has shape [3, N_t], where N_t is the size of <cite>t</cite>.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="snell.detector.Detector.get_transfer">
-<code class="descname">get_transfer</code><span class="sig-paren">(</span><em>u</em>, <em>f</em>, <em>nv</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snell/detector.html#Detector.get_transfer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snell.detector.Detector.get_transfer" title="Permalink to this definition">¶</a></dt>
+<dt id="schnell.detector.Detector.get_transfer">
+<code class="descname">get_transfer</code><span class="sig-paren">(</span><em>u</em>, <em>f</em>, <em>nv</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/detector.html#Detector.get_transfer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.detector.Detector.get_transfer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the detector transfer function as a
 funciton of position, frequency and sky coordinates.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -267,8 +267,8 @@ celestial sphere.</li>
 </dd></dl>
 
 <dl class="method">
-<dt id="snell.detector.Detector.get_uu_vv">
-<code class="descname">get_uu_vv</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snell/detector.html#Detector.get_uu_vv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snell.detector.Detector.get_uu_vv" title="Permalink to this definition">¶</a></dt>
+<dt id="schnell.detector.Detector.get_uu_vv">
+<code class="descname">get_uu_vv</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/detector.html#Detector.get_uu_vv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.detector.Detector.get_uu_vv" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the outer product of the detector arm
 unit vectors as a function of time.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -287,8 +287,8 @@ observing times (in s).</td>
 </dd></dl>
 
 <dl class="method">
-<dt id="snell.detector.Detector.psd">
-<code class="descname">psd</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snell/detector.html#Detector.psd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snell.detector.Detector.psd" title="Permalink to this definition">¶</a></dt>
+<dt id="schnell.detector.Detector.psd">
+<code class="descname">psd</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/detector.html#Detector.psd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.detector.Detector.psd" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns noise PSD as a function of frequency.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -307,10 +307,10 @@ observing times (in s).</td>
 </dd></dl>
 
 <dl class="class">
-<dt id="snell.detector.GroundDetector">
-<em class="property">class </em><code class="descclassname">snell.detector.</code><code class="descname">GroundDetector</code><span class="sig-paren">(</span><em>name</em>, <em>lat</em>, <em>lon</em>, <em>alpha</em>, <em>fname_psd</em>, <em>aperture=90</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snell/detector.html#GroundDetector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snell.detector.GroundDetector" title="Permalink to this definition">¶</a></dt>
-<dd><p><a class="reference internal" href="#snell.detector.GroundDetector" title="snell.detector.GroundDetector"><code class="xref py py-class docutils literal notranslate"><span class="pre">GroundDetector</span></code></a>s represent detectors located at fixed
-position on Earth.</p>
+<dt id="schnell.detector.GroundDetector">
+<em class="property">class </em><code class="descclassname">schnell.detector.</code><code class="descname">GroundDetector</code><span class="sig-paren">(</span><em>name</em>, <em>lat</em>, <em>lon</em>, <em>alpha</em>, <em>fname_psd</em>, <em>aperture=90</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/detector.html#GroundDetector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.detector.GroundDetector" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="#schnell.detector.GroundDetector" title="schnell.detector.GroundDetector"><code class="xref py py-class docutils literal notranslate"><span class="pre">GroundDetector</span></code></a> objects represent detectors
+located at fixed position on Earth.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -334,8 +334,8 @@ corresponding value of the strain-level noise
 </tbody>
 </table>
 <dl class="method">
-<dt id="snell.detector.GroundDetector.get_position">
-<code class="descname">get_position</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snell/detector.html#GroundDetector.get_position"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snell.detector.GroundDetector.get_position" title="Permalink to this definition">¶</a></dt>
+<dt id="schnell.detector.GroundDetector.get_position">
+<code class="descname">get_position</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/detector.html#GroundDetector.get_position"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.detector.GroundDetector.get_position" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a 2D array containing the 3D position of
 the detector at a series of times. The output array
 has shape [3, N_t], where N_t is the size of <cite>t</cite>.</p>
@@ -360,8 +360,8 @@ has shape [3, N_t], where N_t is the size of <cite>t</cite>.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="snell.detector.GroundDetector.get_u_v">
-<code class="descname">get_u_v</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snell/detector.html#GroundDetector.get_u_v"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snell.detector.GroundDetector.get_u_v" title="Permalink to this definition">¶</a></dt>
+<dt id="schnell.detector.GroundDetector.get_u_v">
+<code class="descname">get_u_v</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/detector.html#GroundDetector.get_u_v"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.detector.GroundDetector.get_u_v" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns unit vectors in the directions of the
 detector arms as a function of time.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -382,10 +382,10 @@ observing times (in s).</td>
 </dd></dl>
 
 <dl class="class">
-<dt id="snell.detector.GroundDetectorTriangle">
-<em class="property">class </em><code class="descclassname">snell.detector.</code><code class="descname">GroundDetectorTriangle</code><span class="sig-paren">(</span><em>name</em>, <em>lat</em>, <em>lon</em>, <em>fname_psd</em>, <em>detector_id</em>, <em>beta0_deg=0</em>, <em>arm_length_km=10.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snell/detector.html#GroundDetectorTriangle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snell.detector.GroundDetectorTriangle" title="Permalink to this definition">¶</a></dt>
-<dd><p><a class="reference internal" href="#snell.detector.GroundDetectorTriangle" title="snell.detector.GroundDetectorTriangle"><code class="xref py py-class docutils literal notranslate"><span class="pre">GroundDetectorTriangle</span></code></a>s represent detectors in a
-triangular configureation located at fixed position on
+<dt id="schnell.detector.GroundDetectorTriangle">
+<em class="property">class </em><code class="descclassname">schnell.detector.</code><code class="descname">GroundDetectorTriangle</code><span class="sig-paren">(</span><em>name</em>, <em>lat</em>, <em>lon</em>, <em>fname_psd</em>, <em>detector_id</em>, <em>beta0_deg=0</em>, <em>arm_length_km=10.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/detector.html#GroundDetectorTriangle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.detector.GroundDetectorTriangle" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="#schnell.detector.GroundDetectorTriangle" title="schnell.detector.GroundDetectorTriangle"><code class="xref py py-class docutils literal notranslate"><span class="pre">GroundDetectorTriangle</span></code></a> objects represent detectors
+in a triangular configureation located at fixed position on
 Earth (e.g. the Einstein Telescope).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -410,8 +410,8 @@ the vertex with id 0 and the local meridian.</li>
 </tbody>
 </table>
 <dl class="method">
-<dt id="snell.detector.GroundDetectorTriangle.get_position">
-<code class="descname">get_position</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snell/detector.html#GroundDetectorTriangle.get_position"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snell.detector.GroundDetectorTriangle.get_position" title="Permalink to this definition">¶</a></dt>
+<dt id="schnell.detector.GroundDetectorTriangle.get_position">
+<code class="descname">get_position</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/detector.html#GroundDetectorTriangle.get_position"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.detector.GroundDetectorTriangle.get_position" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a 2D array containing the 3D position of
 the detector at a series of times. The output array
 has shape [3, N_t], where N_t is the size of <cite>t</cite>.</p>
@@ -436,8 +436,8 @@ has shape [3, N_t], where N_t is the size of <cite>t</cite>.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="snell.detector.GroundDetectorTriangle.get_u_v">
-<code class="descname">get_u_v</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snell/detector.html#GroundDetectorTriangle.get_u_v"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snell.detector.GroundDetectorTriangle.get_u_v" title="Permalink to this definition">¶</a></dt>
+<dt id="schnell.detector.GroundDetectorTriangle.get_u_v">
+<code class="descname">get_u_v</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/detector.html#GroundDetectorTriangle.get_u_v"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.detector.GroundDetectorTriangle.get_u_v" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns unit vectors in the directions of the
 detector arms as a function of time.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -458,10 +458,10 @@ observing times (in s).</td>
 </dd></dl>
 
 <dl class="class">
-<dt id="snell.detector.LISADetector">
-<em class="property">class </em><code class="descclassname">snell.detector.</code><code class="descname">LISADetector</code><span class="sig-paren">(</span><em>detector_id</em>, <em>is_L5Gm=False</em>, <em>map_transfer=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snell/detector.html#LISADetector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snell.detector.LISADetector" title="Permalink to this definition">¶</a></dt>
-<dd><p><a class="reference internal" href="#snell.detector.LISADetector" title="snell.detector.LISADetector"><code class="xref py py-class docutils literal notranslate"><span class="pre">LISADetector</span></code></a>s can be used to describe the properties
-of the LISA network.</p>
+<dt id="schnell.detector.LISADetector">
+<em class="property">class </em><code class="descclassname">schnell.detector.</code><code class="descname">LISADetector</code><span class="sig-paren">(</span><em>detector_id</em>, <em>is_L5Gm=False</em>, <em>map_transfer=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/detector.html#LISADetector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.detector.LISADetector" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="#schnell.detector.LISADetector" title="schnell.detector.LISADetector"><code class="xref py py-class docutils literal notranslate"><span class="pre">LISADetector</span></code></a> objects can be used to describe
+the properties of the LISA network.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -479,8 +479,8 @@ be assumed (default <cite>True</cite>).</li>
 </tbody>
 </table>
 <dl class="method">
-<dt id="snell.detector.LISADetector.get_position">
-<code class="descname">get_position</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snell/detector.html#LISADetector.get_position"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snell.detector.LISADetector.get_position" title="Permalink to this definition">¶</a></dt>
+<dt id="schnell.detector.LISADetector.get_position">
+<code class="descname">get_position</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/detector.html#LISADetector.get_position"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.detector.LISADetector.get_position" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a 2D array containing the 3D position of
 the detector at a series of times. The output array
 has shape [3, N_t], where N_t is the size of <cite>t</cite>.</p>
@@ -504,8 +504,8 @@ of gr-qc/0311069.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="snell.detector.LISADetector.get_u_v">
-<code class="descname">get_u_v</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snell/detector.html#LISADetector.get_u_v"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snell.detector.LISADetector.get_u_v" title="Permalink to this definition">¶</a></dt>
+<dt id="schnell.detector.LISADetector.get_u_v">
+<code class="descname">get_u_v</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/detector.html#LISADetector.get_u_v"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.detector.LISADetector.get_u_v" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns unit vectors in the directions of the
 detector arms as a function of time.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -524,8 +524,8 @@ observing times (in s).</td>
 </dd></dl>
 
 <dl class="method">
-<dt id="snell.detector.LISADetector.psd">
-<code class="descname">psd</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/snell/detector.html#LISADetector.psd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#snell.detector.LISADetector.psd" title="Permalink to this definition">¶</a></dt>
+<dt id="schnell.detector.LISADetector.psd">
+<code class="descname">psd</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/detector.html#LISADetector.psd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.detector.LISADetector.psd" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns noise PSD as a function of frequency.
 Uses Eq. 1 from arXiv:1803.01944 (without background
 component).</p>
