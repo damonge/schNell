@@ -15,8 +15,9 @@ class MapCalculator(object):
             the identity is assumed.
         h: value of the Hubble constant in units of 100 km/s/Mpc
             (default: 0.67).
-    """    
+    """
     clight = 299792458.
+
     def __init__(self, det_array, f_pivot=63., spectral_index=2./3.,
                  corr_matrix=None, h=0.67):
         self.dets = det_array
@@ -146,7 +147,7 @@ class MapCalculator(object):
                                                inc_baseline=inc_baseline))
 
     def _plot_antenna(self, t, f, n_theta=100, n_phi=100, i=0, j=0):
-        from mpl_toolkits.mplot3d import Axes3D
+        from mpl_toolkits.mplot3d import Axes3D  # noqa
         phi = np.linspace(0, np.pi, n_phi)
         theta = np.linspace(0, 2*np.pi, n_theta)
         phi, theta = np.meshgrid(phi, theta)
@@ -160,11 +161,11 @@ class MapCalculator(object):
         z = antenna * np.cos(phi)
         gmax, gmin = antenna.max(), antenna.min()
         fcolors = (antenna - gmin)/(gmax - gmin)
-        fig = plt.figure(figsize=plt.figaspect(1.))
+        fig = plt.figure(figsize=plt.figaspect(1.))  # noqa
         ax = fig.add_subplot(111, projection='3d')
         ax.set_title(self.det_A.name+" "+self.det_B.name)
         ax.plot_surface(x, y, z,  rstride=1, cstride=1,
-                        facecolors=cm.seismic(fcolors))
+                        facecolors=cm.seismic(fcolors))  # noqa
         ax.set_axis_off()
 
     def get_Ninv_t(self, t, f, nside, is_fspacing_log=False,
@@ -180,7 +181,7 @@ class MapCalculator(object):
             is_fspacing_log: if `True`, `f` is log-spaced
                 (linearly-spaced otherwise).
                 (Default: `False`).
-            no_autos (bool, or array_like): if a signle `True`
+            no_autos (bool, or array_like): if a single `True`
                 value, all detector auto-correlations will be
                 removed. If a 1D array, only the auto-correlations
                 for which the array element is `True` will be
@@ -204,6 +205,10 @@ class MapCalculator(object):
             if len(no_autos) != self.ndet:
                 raise ValueError("No autos should have %d elements" %
                                  self.ndet)
+        if np.ndim(no_autos) == 1:
+            no_autos = np.diag(no_autos)
+        no_autos = np.array(no_autos)
+
         t_use = np.atleast_1d(t)
         f_use = f
         if is_fspacing_log:
@@ -251,12 +256,12 @@ class MapCalculator(object):
                 iS_AB = iS_f[:, iA, iB]
                 for iC in range(self.ndet):
                     gBC = antennas[iB, iC, :, :, :]
-                    if iB == iC and no_autos[iB]:
+                    if iB == iC and no_autos[iB, iC]:
                         continue
                     for iD in range(self.ndet):
                         iS_CD = iS_f[:, iC, iD]
                         gDA = antennas[iD, iA, :, :, :]
-                        if iA == iD and no_autos[iA]:
+                        if iA == iD and no_autos[iA, iD]:
                             continue
                         ff = df*prefac*iS_AB*iS_CD
                         inoivar += np.sum(ff[None, :, None] *
@@ -273,7 +278,7 @@ class MapCalculator(object):
             nside: HEALPix resolution parameter. Used to create
                 maps of the antenna pattern and computes its sky
                 average.
-            no_autos (bool, or array_like): if a signle `True`
+            no_autos (bool, or array_like): if a single `True`
                 value, all detector auto-correlations will be
                 removed. If a 1D array, only the auto-correlations
                 for which the array element is `True` will be
@@ -290,6 +295,10 @@ class MapCalculator(object):
             if len(no_autos) != self.ndet:
                 raise ValueError("No autos should have %d elements" %
                                  self.ndet)
+        if np.ndim(no_autos) == 1:
+            no_autos = np.diag(no_autos)
+        no_autos = np.array(no_autos)
+
         t_use = np.atleast_1d(t)
         f_use = f
 
@@ -334,26 +343,34 @@ class MapCalculator(object):
                 iS_AB = iS_f[:, iA, iB]
                 for iC in range(self.ndet):
                     rBC = rhos[iB, iC, :, :]
-                    if iB == iC and no_autos[iB]:
+                    if iB == iC and no_autos[iB, iC]:
                         continue
                     for iD in range(self.ndet):
                         iS_CD = iS_f[:, iC, iD]
                         rDA = rhos[iD, iA, :, :]
-                        if iA == iD and no_autos[iA]:
+                        if iA == iD and no_autos[iA, iD]:
                             continue
                         ff = prefac*iS_AB*iS_CD
                         inoivar += ff[None, :] * np.real(rBC * rDA)
         return np.squeeze(inoivar)
 
-    def get_G_ell(self, t, f, nside, no_autos=False, deltaOmega_norm=True):
-        """ Computes :math:`G_\\ell` in Eq. 37 of the companion paper.
+    def get_N_ell(self, t, f, nside, is_fspacing_log=False,
+                  no_autos=False, deltaOmega_norm=True):
+        """ Computes :math:`N_\\ell` for this network.
 
         Args:
-            t: array of `N_t` time values (in s).
+            t (float or array_like): `N_t` time values (in s). If a single
+                number is passed, then the "rigid network" approximation
+                is used, and this time is interpreted as the total
+                observing time. Otherwise, an integral over time is
+                performed.
             f: array of `N_f` frequency values (in Hz).
             nside: HEALPix resolution parameter used to compute spherical
                 harmonic transforms.
-            no_autos (bool, or array_like): if a signle `True`
+            is_fspacing_log: if `True`, `f` is log-spaced
+                (linearly-spaced otherwise).
+                (Default: `False`).
+            no_autos (bool, or array_like): if a single `True`
                 value, all detector auto-correlations will be
                 removed. If a 1D array, only the auto-correlations
                 for which the array element is `True` will be
@@ -366,7 +383,52 @@ class MapCalculator(object):
                 (Default: `True`).
 
         Returns:
-            array_like: array of shape `[N_t, N_f]`.
+            array_like: array of size `N_l = 3 * nside` containing the noise
+                power spectrum.
+        """
+        t_use = np.atleast_1d(t)
+        f_use = np.atleast_1d(f)
+        if is_fspacing_log:
+            dlf = np.mean(np.diff(np.log(f)))
+            df = f * dlf
+        else:
+            df = np.mean(np.diff(f)) * np.ones(len(f))
+        gls = self.get_G_ell(t_use, f_use, nside, no_autos=no_autos,
+                             deltaOmega_norm=deltaOmega_norm)
+        # Sum over frequencies
+        gls = np.sum(gls * df[:, None, None], axis=0)
+        # Sum over times
+        if len(t_use) == 1:
+            gls = np.squeeze(gls * t)
+        else:
+            dt = np.mean(np.diff(t_use))
+            gls = np.sum(gls, axis=0) * dt
+        return 1/gls
+
+    def get_G_ell(self, t, f, nside, no_autos=False, deltaOmega_norm=True):
+        """ Computes :math:`G_\\ell` in Eq. 37 of the companion paper.
+
+        Args:
+            t: array of `N_t` time values (in s).
+            f: array of `N_f` frequency values (in Hz).
+            nside: HEALPix resolution parameter used to compute spherical
+                harmonic transforms.
+            no_autos (bool, or array_like): if a single `True`
+                value, all detector auto-correlations will be
+                removed. If a 1D array, only the auto-correlations
+                for which the array element is `True` will be
+                removed. If a 2D array, all autos and cross-
+                correlations for which the array element is `True`
+                will be removed.
+            deltaOmega_norm: if `True`, the quantity being mapped is
+                :math:`\\delta\\Omega = (\\Omega/\bar{\\Omega}-1)/4\\pi`.
+                Otherwise the :math:`4\\pi` factor is omitted.
+                (Default: `True`).
+
+        Returns:
+            array_like: array of shape `[N_f, N_t, N_l]`, where
+                `N_l = 3 * nside`, containing :math:`G_\\ell` at each
+                frequency and time.
         """
         if np.ndim(no_autos) == 0:
             no_autos = np.array([no_autos] * self.ndet)
@@ -450,4 +512,12 @@ class MapCalculator(object):
                                 cli = hp.alm2cl(gBCi, gADi)
                                 gls[i_f, i_t, :] += iS_AB * iS_CD * (clr + cli)
 
-        return np.squeeze(gls * prefac[:, None, None])
+        gls = gls * prefac[:, None, None]
+        if np.ndim(f) == 0:
+            gls = np.squeeze(gls, axis=0)
+            if np.ndim(t) == 0:
+                gls = np.squeeze(gls, axis=0)
+        else:
+            if np.ndim(t) == 0:
+                gls = np.squeeze(gls, axis=1)
+        return gls

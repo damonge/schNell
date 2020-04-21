@@ -15,8 +15,8 @@ class Detector(object):
 
     * Noise PSDs.
 
-    Baseline :class:`Detector`\s serve only as a superclass for all
-    other detector types. Do not use them.
+    Baseline :class:`Detector` objects serve only as a superclass for
+    all other detector types. Do not use them.
     """
     def __init__(self, name):
         self.name = name
@@ -161,8 +161,8 @@ class Detector(object):
 
 
 class GroundDetectorTriangle(Detector):
-    """ :class:`GroundDetectorTriangle`\s represent detectors in a
-    triangular configureation located at fixed position on
+    """ :class:`GroundDetectorTriangle` objects represent detectors
+    in a triangular configureation located at fixed position on
     Earth (e.g. the Einstein Telescope).
 
     Args:
@@ -267,8 +267,8 @@ class GroundDetectorTriangle(Detector):
 
 
 class GroundDetector(Detector):
-    """ :class:`GroundDetector`\s represent detectors located at fixed
-    position on Earth.
+    """ :class:`GroundDetector` objects represent detectors
+    located at fixed position on Earth.
 
     Args:
         name: detector name.
@@ -354,8 +354,8 @@ class GroundDetector(Detector):
 
 
 class LISADetector(Detector):
-    """ :class:`LISADetector`\s can be used to describe the properties
-    of the LISA network.
+    """ :class:`LISADetector` objects can be used to describe
+    the properties of the LISA network.
 
     Args:
         detector_id: detector number (0, 1 or 2).
