@@ -268,6 +268,36 @@ class MapCalculator(object):
                                           np.real(gBC * gDA), axis=1)
         return np.squeeze(inoivar)
 
+    def get_pi_curve(self, t, f, nside, is_fspacing_log=False,
+                     no_autos=False, beta_range=[-10, 10],
+                     nsigma=1):
+        t_use = np.atleast_1d(t)
+        f_use = f
+        if is_fspacing_log:
+            dlf = np.mean(np.diff(np.log(f)))
+            df = f * dlf
+        else:
+            df = np.mean(np.diff(f)) * np.ones(len(f))
+        inv_dsig2_dnu_dt = self.get_dsigm2_dnu_t(t_use, f_use, nside,
+                                                 no_autos=no_autos)
+        # Sum over time
+        if len(t_use) == 1:
+            inv_dsig2_dnu = np.squeeze(inv_dsig2_dnu_dt * t)
+        else:
+            dt = np.mean(np.diff(t_use))
+            inv_dsig2_dnu = np.sum(inv_dsig2_dnu_dt, axis=0) * dt
+
+        def _om(beta):
+            # Sum over frequencies
+            plaw = (f_use/self.f_pivot)**beta
+            snm2 = np.sum(inv_dsig2_dnu * plaw**2 * df)
+            return nsigma * plaw / np.sqrt(snm2)
+
+        betas = np.linspace(beta_range[0], beta_range[1], 100)
+        oms = np.array([_om(b) for b in betas])
+        pi = np.max(oms, axis=0)
+        return pi
+
     def get_dsigm2_dnu_t(self, t, f, nside, no_autos=False):
         """ Computes :math:`d\\sigma^{-2}/df\\,dt` for a set
         of frequencies and times.
