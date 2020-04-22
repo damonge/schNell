@@ -92,11 +92,7 @@
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Overview</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#basic-structure">Basic Structure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#blahblig">Blahblig</a></li>
-</ul>
-</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API Documentation</a></li>
 </ul>
 
@@ -164,45 +160,13 @@
             
   <div class="section" id="overview">
 <h1>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h1>
-<p>Blah</p>
-<div class="section" id="basic-structure">
-<h2>Basic Structure<a class="headerlink" href="#basic-structure" title="Permalink to this headline">¶</a></h2>
-<p>Blah</p>
+<p>schNell is a very lightweight python module that can be used to compute basic map-level noise properties for generic networks of gravitational wave interferometers. This includes primarily the noise power spectrum  <span class="math notranslate nohighlight">\(N_{\ell}\)</span>, but also other things, such as antenna patterns, overlap functions, inverse variance maps etc.</p>
+<p>schNell is composed of two main classes:</p>
 <ul class="simple">
-<li>a</li>
-<li>b</li>
-<li>c</li>
+<li><code class="xref py py-class docutils literal notranslate"><span class="pre">Detector</span></code>s. These contain information about each individual detector of the network (their positions, noise properties, orientation etc.).</li>
+<li><code class="xref py py-class docutils literal notranslate"><span class="pre">MapCalculator</span></code>s. These objects combine a list of <code class="xref py py-class docutils literal notranslate"><span class="pre">Detector</span></code>s into a network and compute the correspondin map-level noise properties arising from their correlations.</li>
 </ul>
-</div>
-<div class="section" id="blahblig">
-<h2>Blahblig<a class="headerlink" href="#blahblig" title="Permalink to this headline">¶</a></h2>
-<p>Weeee</p>
-<ul class="simple">
-<li>yes</li>
-</ul>
-<p>There are a number of predefined type strings that you can see like this:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">sacc</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">sacc</span><span class="o">.</span><span class="n">standard_types</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>You can create a type string in the correct format using the command <code class="code docutils literal notranslate"><span class="pre">sacc.build_data_type_name</span></code>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">sacc</span>
-<span class="c1"># the astrophysical sources involved.</span>
-<span class="c1"># We use &#39;cm21&#39; since &#39;21cm&#39; starts with a number which is not allowed in variable names.</span>
-<span class="n">sources</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;quasars&#39;</span><span class="p">,</span> <span class="s1">&#39;cm21&#39;</span><span class="p">]</span>
-<span class="c1"># the properties of these two sources we are measuring.  If they were the same</span>
-<span class="c1"># property for the two sources we would not repeat it</span>
-<span class="n">properties</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;density&#39;</span><span class="p">,</span> <span class="s1">&#39;Intensity&#39;</span><span class="p">]</span>
-<span class="c1"># The statistc, Fourier space C_ell values</span>
-<span class="n">statistic</span> <span class="o">=</span> <span class="s1">&#39;cl&#39;</span>
-<span class="c1"># There is no futher specified needed here - everything is scalar.</span>
-<span class="n">subtype</span> <span class="o">=</span> <span class="kc">None</span>
-<span class="n">data_type</span> <span class="o">=</span> <span class="n">sacc</span><span class="o">.</span><span class="n">build_data_type_name</span><span class="p">(</span><span class="n">sources</span><span class="p">,</span> <span class="n">properties</span><span class="p">,</span> <span class="n">statistic</span><span class="p">,</span> <span class="n">subtype</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">data_type</span><span class="p">)</span>
-<span class="c1"># prints &#39;quasarsCm21_densityIntensity_cl&#39;</span>
-</pre></div>
-</div>
-</div>
+<p>A quick but thorough description of how these two classes can be used to compute different quantities can be found in <a class="reference external" href="https://github.com/damonge/schNell/blob/master/examples/Nell_example.ipynb">here</a>.</p>
 </div>
 
 

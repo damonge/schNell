@@ -1,43 +1,10 @@
 Overview
 ========
-Blah
+schNell is a very lightweight python module that can be used to compute basic map-level noise properties for generic networks of gravitational wave interferometers. This includes primarily the noise power spectrum  :math:`N_{\ell}`, but also other things, such as antenna patterns, overlap functions, inverse variance maps etc.
 
+schNell is composed of two main classes:
 
-Basic Structure
----------------
+- :class:`~schnell.Detector`\s. These contain information about each individual detector of the network (their positions, noise properties, orientation etc.).
+- :class:`~schnell.MapCalculator`\s. These objects combine a list of :class:`~schnell.Detector`\s into a network and compute the correspondin map-level noise properties arising from their correlations.
 
-Blah
-
-- a
-- b
-- c
-
-Blahblig
---------
-
-Weeee
-
-- yes
-
-There are a number of predefined type strings that you can see like this::
-
-  import sacc
-  print(sacc.standard_types)
-
-
-You can create a type string in the correct format using the command :code:`sacc.build_data_type_name`::
-
-  import sacc
-  # the astrophysical sources involved.
-  # We use 'cm21' since '21cm' starts with a number which is not allowed in variable names.
-  sources = ['quasars', 'cm21']
-  # the properties of these two sources we are measuring.  If they were the same
-  # property for the two sources we would not repeat it
-  properties = ['density', 'Intensity']
-  # The statistc, Fourier space C_ell values
-  statistic = 'cl'
-  # There is no futher specified needed here - everything is scalar.
-  subtype = None
-  data_type = sacc.build_data_type_name(sources, properties, statistic, subtype)
-  print(data_type)
-  # prints 'quasarsCm21_densityIntensity_cl'
+A quick but thorough description of how these two classes can be used to compute different quantities can be found in `here <https://github.com/damonge/schNell/blob/master/examples/Nell_example.ipynb>`_.
