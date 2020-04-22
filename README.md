@@ -13,7 +13,7 @@ Or for development versions you can download the repository with git and install
 ## Documentation
 Documentation can be found on [readthedocs](https://schnell.readthedocs.io/en/latest/).
 
-This example [notebook](dummy) on github also showcases the main functionalities of the module.
+This example [notebook](https://github.com/damonge/schNell/blob/master/examples/Nell_example.ipynb) on github also showcases the main functionalities of the module.
 
 ## License and credits
 If you use schNell, we kindly ask you to cite its companion paper (link to appear here soon).
