@@ -1,8 +1,7 @@
 API Documentation
 =================
 
-Most sacc interface is done through the sacc.Sacc object, including tracer, covariance, and data point construction.
-One notable exception is the specification of winow functions, which is done manually.s
+The two classes that make up `schNell` are described here. Please refer to the examples on github for a description of how these interact in practice.
 
 .. toctree::
    :maxdepth: 1
