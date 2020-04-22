@@ -414,7 +414,8 @@ class MapCalculator(object):
         return np.squeeze(inoivar)
 
     def get_N_ell(self, t, f, nside, is_fspacing_log=False,
-                  no_autos=False, deltaOmega_norm=True):
+                  no_autos=False, deltaOmega_norm=True,
+                  use_detector_rho=False):
         """ Computes :math:`N_\\ell` for this network.
 
         Args:
@@ -453,7 +454,8 @@ class MapCalculator(object):
         else:
             df = np.mean(np.diff(f)) * np.ones(len(f))
         gls = self.get_G_ell(t_use, f_use, nside, no_autos=no_autos,
-                             deltaOmega_norm=deltaOmega_norm)
+                             deltaOmega_norm=deltaOmega_norm,
+                             use_detector_rho=use_detector_rho)
         # Sum over frequencies
         gls = np.sum(gls * df[:, None, None], axis=0)
         # Sum over times
@@ -464,7 +466,8 @@ class MapCalculator(object):
             gls = np.sum(gls, axis=0) * dt
         return 1/gls
 
-    def get_G_ell(self, t, f, nside, no_autos=False, deltaOmega_norm=True):
+    def get_G_ell(self, t, f, nside, no_autos=False, deltaOmega_norm=True,
+                  use_detector_rho=False):
         """ Computes :math:`G_\\ell` in Eq. 37 of the companion paper.
 
         Args:
@@ -513,11 +516,26 @@ class MapCalculator(object):
         # Get S matrix:
         # [n_f, n_det]
         S_f_diag = np.array([d.psd(f_use) for d in self.dets]).T
-        # [n_f, n_det, n_det]
-        S_f = np.sqrt(S_f_diag[:, :, None] * S_f_diag[:, None, :])
-        S_f *= self.rho[None, :, :]
+        if use_detector_rho and hasattr(self.dets[0], 'rho'):
+            rho = self.dets[0].rho(f_use)
+            # [n_f, n_det, n_det]
+            S_f = np.zeros([len(f_use), self.ndet, self.ndet])
+            for i1 in range(self.ndet):
+                s1 = S_f_diag[:, i1]
+                for i2 in range(i1, self.ndet):
+                    if i1 == i2:
+                        S_f[:, i1, i1] = s1
+                    else:
+                        s2 = S_f_diag[:, i2]
+                        s12 = np.sqrt(s1*s2)*rho
+                        S_f[:, i1, i2] = s12
+                        S_f[:, i2, i1] = s12
+        else:
+            # [n_f, n_det, n_det]
+            S_f = np.sqrt(S_f_diag[:, :, None] * S_f_diag[:, None, :])
+            S_f *= self.rho[None, :, :]
         # Invert
-        iS_f = np.linalg.inv(S_f)
+        iS_f = np.linalg.pinv(S_f, rcond=1E-2, hermitian=True)
 
         # Get antenna alms
         aalms_r = np.zeros([self.ndet, self.ndet,

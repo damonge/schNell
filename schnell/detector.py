@@ -423,6 +423,33 @@ class LISADetector(Detector):
 
         return Pn
 
+    def rho(self, f):
+        """ Returns pairwise correlation coefficient.
+
+        Args:
+            f: array of frequencies (in Hz).
+
+        Returns:
+            array_like: correlation coefficient sampled at the input \
+                frequencies.
+        """
+        psd_a = self.psd(f)
+        psd_x = self._psd_x(f)
+        return psd_x / psd_a
+
+    def _psd_x(self, f):
+        # Cross-correlation noise PSD
+        # TODO: do these curves assume that you already have
+        # 2 independent detectors?
+        fstar = self.clight / (2 * np.pi * self.L)
+        f1 = 4E-4
+        Ss = (1E-11 / self.L)**2
+        Poms = (1.5E-11)**2*(1+(2E-3/f)**4)
+        Pacc = (3E-15)**2 * (1 + (4E-4/f)**2)*(1+(f/8E-3)**4)/(2*np.pi*f)**4
+        Pn = -0.5 * (Poms + 4 * Pacc) * np.cos(f/fstar) / self.L**2
+
+        return Pn
+
     def get_position(self, t):
         """ Returns a 2D array containing the 3D position of
         the detector at a series of times. The output array
