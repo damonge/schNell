@@ -8,3 +8,14 @@ Overview
 - :class:`~schnell.MapCalculator`\s. These objects combine a list of :class:`~schnell.Detector`\s into a network and compute the correspondin map-level noise properties arising from their correlations.
 
 A quick but thorough description of how these two classes can be used to compute different quantities can be found in `here <https://github.com/damonge/schNell/blob/master/examples/Nell_example.ipynb>`_.
+
+
+Installation
+------------
+
+Installing `schNell` should be as simple as typing::
+
+  pip install schnell [--user]
+
+
+where the `--user` flag will only be necessary if you don't have admin privileges.
