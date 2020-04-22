@@ -1,0 +1,486 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Map calculators &mdash; schnell 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'./',
+              VERSION:'0.1.0',
+              LANGUAGE:'None',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Detectors" href="detector.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> schnell
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Overview</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="api.html">API Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="detector.html">Detectors</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Map calculators</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">schnell</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="api.html">API Documentation</a> &raquo;</li>
+        
+      <li>Map calculators</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/mapping.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-schnell.mapping">
+<span id="map-calculators"></span><h1>Map calculators<a class="headerlink" href="#module-schnell.mapping" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="schnell.mapping.MapCalculator">
+<em class="property">class </em><code class="descclassname">schnell.mapping.</code><code class="descname">MapCalculator</code><span class="sig-paren">(</span><em>det_array</em>, <em>f_pivot=63.0</em>, <em>spectral_index=0.6666666666666666</em>, <em>corr_matrix=None</em>, <em>h=0.67</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/mapping.html#MapCalculator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.mapping.MapCalculator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Map calculators compute map-level quantities for a given
+network of detectors.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>det_array</strong> – list of <cite>Detector</cite> objects.</li>
+<li><strong>f_pivot</strong> – pivot frequency in Hz (default: 63 Hz)</li>
+<li><strong>spectral_index</strong> – power-law spectral index. This should correspond
+to the index in units of Omega_GW, not intensity.</li>
+<li><strong>corr_matrix</strong> – noise correlation matrix for the array. If <cite>None</cite>
+the identity is assumed.</li>
+<li><strong>h</strong> – value of the Hubble constant in units of 100 km/s/Mpc
+(default: 0.67).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="schnell.mapping.MapCalculator.get_G_ell">
+<code class="descname">get_G_ell</code><span class="sig-paren">(</span><em>t</em>, <em>f</em>, <em>nside</em>, <em>no_autos=False</em>, <em>deltaOmega_norm=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/mapping.html#MapCalculator.get_G_ell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.mapping.MapCalculator.get_G_ell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes <span class="math notranslate nohighlight">\(G_\ell\)</span> in Eq. 37 of the companion paper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>t</strong> – array of <cite>N_t</cite> time values (in s).</li>
+<li><strong>f</strong> – array of <cite>N_f</cite> frequency values (in Hz).</li>
+<li><strong>nside</strong> – HEALPix resolution parameter used to compute spherical
+harmonic transforms.</li>
+<li><strong>no_autos</strong> (<em>bool</em><em>, or </em><em>array_like</em>) – if a single <cite>True</cite>
+value, all detector auto-correlations will be
+removed. If a 1D array, only the auto-correlations
+for which the array element is <cite>True</cite> will be
+removed. If a 2D array, all autos and cross-
+correlations for which the array element is <cite>True</cite>
+will be removed.</li>
+<li><strong>deltaOmega_norm</strong> – if <cite>True</cite>, the quantity being mapped is
+<span class="math notranslate nohighlight">\(\delta\Omega = (\Omega/ar{\Omega}-1)/4\pi\)</span>.
+Otherwise the <span class="math notranslate nohighlight">\(4\pi\)</span> factor is omitted.
+(Default: <cite>True</cite>).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><dl class="docutils">
+<dt>array of shape <cite>[N_f, N_t, N_l]</cite>, where</dt>
+<dd><p class="first last"><cite>N_l = 3 * nside</cite>, containing <span class="math notranslate nohighlight">\(G_\ell\)</span> at each
+frequency and time.</p>
+</dd>
+</dl>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">array_like</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="schnell.mapping.MapCalculator.get_N_ell">
+<code class="descname">get_N_ell</code><span class="sig-paren">(</span><em>t</em>, <em>f</em>, <em>nside</em>, <em>is_fspacing_log=False</em>, <em>no_autos=False</em>, <em>deltaOmega_norm=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/mapping.html#MapCalculator.get_N_ell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.mapping.MapCalculator.get_N_ell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes <span class="math notranslate nohighlight">\(N_\ell\)</span> for this network.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>t</strong> (<em>float</em><em> or </em><em>array_like</em>) – <cite>N_t</cite> time values (in s). If a single
+number is passed, then the “rigid network” approximation
+is used, and this time is interpreted as the total
+observing time. Otherwise, an integral over time is
+performed.</li>
+<li><strong>f</strong> – array of <cite>N_f</cite> frequency values (in Hz).</li>
+<li><strong>nside</strong> – HEALPix resolution parameter used to compute spherical
+harmonic transforms.</li>
+<li><strong>is_fspacing_log</strong> – if <cite>True</cite>, <cite>f</cite> is log-spaced
+(linearly-spaced otherwise).
+(Default: <cite>False</cite>).</li>
+<li><strong>no_autos</strong> (<em>bool</em><em>, or </em><em>array_like</em>) – if a single <cite>True</cite>
+value, all detector auto-correlations will be
+removed. If a 1D array, only the auto-correlations
+for which the array element is <cite>True</cite> will be
+removed. If a 2D array, all autos and cross-
+correlations for which the array element is <cite>True</cite>
+will be removed.</li>
+<li><strong>deltaOmega_norm</strong> – if <cite>True</cite>, the quantity being mapped is
+<span class="math notranslate nohighlight">\(\delta\Omega = (\Omega/ar{\Omega}-1)/4\pi\)</span>.
+Otherwise the <span class="math notranslate nohighlight">\(4\pi\)</span> factor is omitted.
+(Default: <cite>True</cite>).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><dl class="docutils">
+<dt>array of size <cite>N_l = 3 * nside</cite> containing the noise</dt>
+<dd><p class="first last">power spectrum.</p>
+</dd>
+</dl>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">array_like</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="schnell.mapping.MapCalculator.get_Ninv_t">
+<code class="descname">get_Ninv_t</code><span class="sig-paren">(</span><em>t</em>, <em>f</em>, <em>nside</em>, <em>is_fspacing_log=False</em>, <em>no_autos=False</em>, <em>deltaOmega_norm=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/mapping.html#MapCalculator.get_Ninv_t"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.mapping.MapCalculator.get_Ninv_t" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes inverse noise variance map for a set of
+timeframes integrated over frequency.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>t</strong> – array of <cite>N_t</cite> time values (in s).</li>
+<li><strong>f</strong> – array of frequency values that will be
+integrated over.</li>
+<li><strong>nside</strong> – HEALPix resolution parameter.</li>
+<li><strong>is_fspacing_log</strong> – if <cite>True</cite>, <cite>f</cite> is log-spaced
+(linearly-spaced otherwise).
+(Default: <cite>False</cite>).</li>
+<li><strong>no_autos</strong> (<em>bool</em><em>, or </em><em>array_like</em>) – if a single <cite>True</cite>
+value, all detector auto-correlations will be
+removed. If a 1D array, only the auto-correlations
+for which the array element is <cite>True</cite> will be
+removed. If a 2D array, all autos and cross-
+correlations for which the array element is <cite>True</cite>
+will be removed.</li>
+<li><strong>deltaOmega_norm</strong> – if <cite>True</cite>, the quantity being mapped is
+<span class="math notranslate nohighlight">\(\delta\Omega = (\Omega/ar{\Omega}-1)/4\pi\)</span>.
+Otherwise the <span class="math notranslate nohighlight">\(4\pi\)</span> factor is omitted.
+(Default: <cite>True</cite>).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">array of shape <cite>[N_t, N_pix]</cite> containing
+the inverse noise variance map sampled at the
+<cite>N_pix</cite> pixel positions corresponding to the input
+HEALPix resolution parameter (in RING ordering).</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">array_like</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="schnell.mapping.MapCalculator.get_antenna">
+<code class="descname">get_antenna</code><span class="sig-paren">(</span><em>i</em>, <em>j</em>, <em>t</em>, <em>f</em>, <em>theta</em>, <em>phi</em>, <em>pol=False</em>, <em>inc_baseline=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/mapping.html#MapCalculator.get_antenna"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.mapping.MapCalculator.get_antenna" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns antenna pattern for a detector pair
+as a function of time, frequency and sky position.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>i</strong> – index of first detector</li>
+<li><strong>j</strong> – index of second detector</li>
+<li><strong>t</strong> – array of <cite>N_t</cite> times (in s).</li>
+<li><strong>f</strong> – array of <cite>N_f</cite> times (in Hz).</li>
+<li><strong>theta</strong> – array of <cite>N_pix</cite> colatitude values (in radians).</li>
+<li><strong>phi</strong> – array of <cite>N_pix</cite> azimuth values (in radians).</li>
+<li><strong>pol</strong> (<em>bool</em>) – compute all polarized components?
+(default: False).</li>
+<li><strong>inc_baseline</strong> – include baseline-related phase. Otherwise
+only the <span class="math notranslate nohighlight">\(\gamma\)</span> overlap function in Eq.
+22 of the companion paper will be returned.
+(default: True).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="schnell.mapping.MapCalculator.get_dsigm2_dnu_t">
+<code class="descname">get_dsigm2_dnu_t</code><span class="sig-paren">(</span><em>t</em>, <em>f</em>, <em>nside</em>, <em>no_autos=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/mapping.html#MapCalculator.get_dsigm2_dnu_t"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.mapping.MapCalculator.get_dsigm2_dnu_t" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes <span class="math notranslate nohighlight">\(d\sigma^{-2}/df\,dt\)</span> for a set
+of frequencies and times.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>t</strong> – array of <cite>N_t</cite> time values (in s).</li>
+<li><strong>f</strong> – array of <cite>N_f</cite> frequency values (in Hz).</li>
+<li><strong>nside</strong> – HEALPix resolution parameter. Used to create
+maps of the antenna pattern and computes its sky
+average.</li>
+<li><strong>no_autos</strong> (<em>bool</em><em>, or </em><em>array_like</em>) – if a single <cite>True</cite>
+value, all detector auto-correlations will be
+removed. If a 1D array, only the auto-correlations
+for which the array element is <cite>True</cite> will be
+removed. If a 2D array, all autos and cross-
+correlations for which the array element is <cite>True</cite>
+will be removed.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">array of shape <cite>[N_t, N_f]</cite>.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">array_like</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="schnell.mapping.MapCalculator.get_pi_curve">
+<code class="descname">get_pi_curve</code><span class="sig-paren">(</span><em>t, f, nside, is_fspacing_log=False, no_autos=False, beta_range=[-10, 10], nsigma=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/mapping.html#MapCalculator.get_pi_curve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.mapping.MapCalculator.get_pi_curve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the power-law-integrated (PI) sensitivity curve
+for this network (see arXiv:1310.5300).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>t</strong> (<em>float</em><em> or </em><em>array_like</em>) – <cite>N_t</cite> time values (in s). If a single
+number is passed, then the “rigid network” approximation
+is used, and this time is interpreted as the total
+observing time. Otherwise, an integral over time is
+performed.</li>
+<li><strong>f</strong> – array of <cite>N_f</cite> frequency values (in Hz). This will be the
+frequencies at which the PI curve will be sampled, and also
+the frequencies used for numerical integration.</li>
+<li><strong>nside</strong> – HEALPix resolution parameter. Used to create
+maps of the antenna pattern and computes its sky
+average.</li>
+<li><strong>no_autos</strong> (<em>bool</em><em>, or </em><em>array_like</em>) – if a single <cite>True</cite>
+value, all detector auto-correlations will be
+removed. If a 1D array, only the auto-correlations
+for which the array element is <cite>True</cite> will be
+removed. If a 2D array, all autos and cross-
+correlations for which the array element is <cite>True</cite>
+will be removed.</li>
+<li><strong>beta_range</strong> – a list containing the range of power law indices
+for which the PI curve will be computed.</li>
+<li><strong>nsigma</strong> – S/N of the PI curve (default: 1-sigma).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">array of size <cite>N_f</cite>.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">array_like</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="detector.html" class="btn btn-neutral float-left" title="Detectors" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, David Alonso
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
