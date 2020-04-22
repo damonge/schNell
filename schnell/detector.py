@@ -362,8 +362,6 @@ class LISADetector(Detector):
         is_L5Gm (bool): whether the arm length should be
             5E9 meters (otherwise 2.5E9 meters will be assumed)
             (default `False`).
-        map_transfer: whether the LISA transfer function should
-            be assumed (default `True`).
     """
     trans_freq_earth = 2 * np.pi / (365 * 24 * 3600)
     R_AU = 1.496E11
@@ -371,12 +369,10 @@ class LISADetector(Detector):
     lam = 0  # initial orientation
     clight = 299792458.
 
-    def __init__(self, detector_id, is_L5Gm=False, map_transfer=True):
+    def __init__(self, detector_id, is_L5Gm=False):
         self.i_d = detector_id % 3
         self.name = 'LISA_%d' % self.i_d
-        self.map_transfer = map_transfer
-        if self.map_transfer:
-            self.get_transfer = self._get_transfer_LISA
+        self.get_transfer = self._get_transfer_LISA
         if is_L5Gm:  # 5 Gm arm length
             self.L = 5E9
             self.e = 0.00965
@@ -422,16 +418,10 @@ class LISADetector(Detector):
         # 2 independent detectors?
         fstar = self.clight / (2 * np.pi * self.L)
         Poms = (1.5E-11)**2*(1+(2E-3/f)**4)
-        Pacc = (3E-15)**2 * (1 + (4E-4/f)**2)*(1+(f/8E-3)**4)
-        Pn = (Poms+2*(1+np.cos(f/fstar)**2)*Pacc/(2*np.pi*f)**4) / self.L**2
+        Pacc = (3E-15)**2 * (1 + (4E-4/f)**2)*(1+(f/8E-3)**4)/(2*np.pi*f)**4
+        Pn = (Poms+2*(1+np.cos(f/fstar)**2)*Pacc) / self.L**2
 
-        if self.map_transfer:
-            return Pn
-        else:
-            # TODO: check prefactor. I think it already accounts
-            # for the 60deg aperture.
-            Rinv = 10 * (1 + 0.6 * (f / fstar)**2) / 3
-            return Pn * Rinv
+        return Pn
 
     def get_position(self, t):
         """ Returns a 2D array containing the 3D position of

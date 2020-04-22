@@ -8,15 +8,13 @@ rc('font', **{'family': 'sans-serif',
 rc('text', usetex=True)
 
 
-det_0 = snl.LISADetector(0, map_transfer=True)
-det_1 = snl.LISADetector(1, map_transfer=True)
-det_2 = snl.LISADetector(2, map_transfer=True)
+dets = [snl.LISADetector(i) for i in range(3)]
 # Correlation between detectors
 r = -0.2
 rho = np.array([[1, r, r],
                 [r, 1, r],
                 [r, r, 1]])
-mc = snl.MapCalculator([det_0, det_1, det_2], f_pivot=1E-2,
+mc = snl.MapCalculator(dets, f_pivot=1E-2,
                        corr_matrix=rho)
 
 nside = 32

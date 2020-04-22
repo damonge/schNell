@@ -11,8 +11,7 @@ f_ref = 1E-2
 nside = 32
 r = -0.2
 
-dets = [snl.LISADetector(i, map_transfer=True)
-        for i in range(3)]
+dets = [snl.LISADetector(i) for i in range(3)]
 rho = np.array([[1, r, r],
                 [r, 1, r],
                 [r, r, 1]])

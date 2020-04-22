@@ -5,10 +5,10 @@ from schnell import MapCalculator, GroundDetector, LISADetector
 
 # Detectors
 det1 = GroundDetector('Hanford',     46.4, -119.4, 90-171.8,
-                      'data/curves_May_2019/aligo_design.txt')
+                      'plots/data/aLIGO_design.txt')
 det2 = GroundDetector('Livingstone', 30.7,  -90.8, 90-243.0,
-                      'data/curves_May_2019/aligo_design.txt')
-detl = LISADetector(0, map_transfer=True, is_L5Gm=False)
+                      'plots/data/aLIGO_design.txt')
+detl = LISADetector(0, is_L5Gm=False)
 
 # Calculators
 mc11_n = MapCalculator([det1])
