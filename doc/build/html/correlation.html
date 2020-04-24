@@ -1,0 +1,337 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Correlations &mdash; schnell 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'./',
+              VERSION:'0.1.0',
+              LANGUAGE:'None',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Map calculators" href="mapping.html" />
+    <link rel="prev" title="Detectors" href="detector.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> schnell
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Overview</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="api.html">API Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="detector.html">Detectors</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mapping.html">Map calculators</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">schnell</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="api.html">API Documentation</a> &raquo;</li>
+        
+      <li>Correlations</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/correlation.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-schnell.correlation">
+<span id="correlations"></span><h1>Correlations<a class="headerlink" href="#module-schnell.correlation" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="schnell.correlation.NoiseCorrelationBase">
+<em class="property">class </em><code class="descclassname">schnell.correlation.</code><code class="descname">NoiseCorrelationBase</code><span class="sig-paren">(</span><em>ndet</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/correlation.html#NoiseCorrelationBase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.correlation.NoiseCorrelationBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Noise correlation objects have methods to compute
+noise PSD correlation matrices.</p>
+<p>Do not use the bare class.</p>
+<dl class="method">
+<dt id="schnell.correlation.NoiseCorrelationBase.get_corrmat">
+<code class="descname">get_corrmat</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/correlation.html#NoiseCorrelationBase.get_corrmat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.correlation.NoiseCorrelationBase.get_corrmat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return covariance matrix as a function
+of frequency.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>f</strong> – array of <cite>N_f</cite> frequencies.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">array of shape <cite>[N_f, N_d, N_d]</cite>,                 where <cite>N_d</cite> is the number of detectors in                 the network, containing the correlation                 matrix for each input frequency.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">array_like</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="schnell.correlation.NoiseCorrelationConstant">
+<em class="property">class </em><code class="descclassname">schnell.correlation.</code><code class="descname">NoiseCorrelationConstant</code><span class="sig-paren">(</span><em>corrmat</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/correlation.html#NoiseCorrelationConstant"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.correlation.NoiseCorrelationConstant" title="Permalink to this definition">¶</a></dt>
+<dd><p>This describes constant correlation matrices.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>corrmat</strong> – 2D array providing the constant covariance
+matrix.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="schnell.correlation.NoiseCorrelationConstantIdentity">
+<em class="property">class </em><code class="descclassname">schnell.correlation.</code><code class="descname">NoiseCorrelationConstantIdentity</code><span class="sig-paren">(</span><em>ndet</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/correlation.html#NoiseCorrelationConstantIdentity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.correlation.NoiseCorrelationConstantIdentity" title="Permalink to this definition">¶</a></dt>
+<dd><p>This describes diagonal correlation matrices.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ndet</strong> – number of detectors in the network.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="schnell.correlation.NoiseCorrelationConstantR">
+<em class="property">class </em><code class="descclassname">schnell.correlation.</code><code class="descname">NoiseCorrelationConstantR</code><span class="sig-paren">(</span><em>ndet</em>, <em>r</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/correlation.html#NoiseCorrelationConstantR"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.correlation.NoiseCorrelationConstantR" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class implements correlation matrices that
+have the same cross-correlation coefficient for all
+pairs of different detector, which is also constant
+in frequency.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ndet</strong> – number of detectors in the network.</li>
+<li><strong>r</strong> – pairwise correlation coefficient.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="schnell.correlation.NoiseCorrelationFromFunctions">
+<em class="property">class </em><code class="descclassname">schnell.correlation.</code><code class="descname">NoiseCorrelationFromFunctions</code><span class="sig-paren">(</span><em>ndet</em>, <em>psd_auto</em>, <em>psd_cross</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/correlation.html#NoiseCorrelationFromFunctions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.correlation.NoiseCorrelationFromFunctions" title="Permalink to this definition">¶</a></dt>
+<dd><p>This implements a correlation matrix that has
+the same auto-correlation PSD for all detectors and
+the same cross-correlation PSD for all pairs of
+different detectors.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ndet</strong> – number of detectors in the network.</li>
+<li><strong>psd_auto</strong> – function of frequency returning the
+detector noise auto-correlation.</li>
+<li><strong>psd_cross</strong> – function of frequency returning the
+detector noise cross-correlation.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="schnell.correlation.NoiseCorrelationLISA">
+<em class="property">class </em><code class="descclassname">schnell.correlation.</code><code class="descname">NoiseCorrelationLISA</code><span class="sig-paren">(</span><em>det</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/correlation.html#NoiseCorrelationLISA"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.correlation.NoiseCorrelationLISA" title="Permalink to this definition">¶</a></dt>
+<dd><p>This implements the LISA noise correlation
+matrix.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>det</strong> – <code class="xref py py-class docutils literal notranslate"><span class="pre">LISADetector</span></code> object.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="mapping.html" class="btn btn-neutral float-right" title="Map calculators" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="detector.html" class="btn btn-neutral float-left" title="Detectors" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, David Alonso
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

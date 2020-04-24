@@ -11,10 +11,7 @@ rc('text', usetex=True)
 
 dets = [snl.LISADetector(i) for i in range(3)]
 # Correlation between detectors
-r = -0.2
-rho = np.array([[1, r, r],
-                [r, 1, r],
-                [r, r, 1]])
+rho = snl.NoiseCorrelationLISA(dets[0])
 mc = snl.MapCalculator(dets, f_pivot=1E-2,
                        corr_matrix=rho)
 nside = 16
@@ -26,7 +23,7 @@ freqs = 10.**lfreqs
 # One year
 obs_time = 365*24*3600.
 # 1-day intervals
-nframes = 24#365
+nframes = 24*365
 t_frames = np.linspace(0, obs_time, nframes+1)[:-1]
 inoi_tot = mc.get_Ninv_t(t_frames, freqs, nside,
                          is_fspacing_log=True)
@@ -81,7 +78,7 @@ def make_videos(inoi_plot, prefix, remove_frames=True):
         os.system('rm '+prefix+'*.png')
 
 
-#make_videos(inoi_tot, 'vid_LISA_tt', remove_frames=True)
+make_videos(inoi_tot, 'vid_LISA_tt', remove_frames=True)
 plot_inoise_map(inoi_tot[0], lims=[0, 3.5],
                 which='Instantaneous',
                 figname='noivar_LISA_tt_inst.pdf')

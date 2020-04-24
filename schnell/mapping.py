@@ -1,5 +1,10 @@
 import healpy as hp
 import numpy as np
+from .correlation import (
+    NoiseCorrelationBase,
+    NoiseCorrelationConstant,
+    NoiseCorrelationConstantIdentity,
+    NoiseCorrelationConstantR)
 
 
 class MapCalculator(object):
@@ -12,11 +17,16 @@ class MapCalculator(object):
         spectral_index: power-law spectral index. This should correspond
             to the index in units of Omega_GW, not intensity.
         corr_matrix: noise correlation matrix for the array. If `None`
-            the identity is assumed.
+            the identity is assumed. If a constant, this will be assumed
+            to be the correlation coefficient between pairs of different
+            detectors. If a 2D array, it will be the frequency-independent
+            correlation matrix. Otherwise, pass a
+            :class:`~schnell.NoiseCorrelationBase` object.
         h: value of the Hubble constant in units of 100 km/s/Mpc
             (default: 0.67).
     """
     clight = 299792458.
+    rcond = 1E-10
 
     def __init__(self, det_array, f_pivot=63., spectral_index=2./3.,
                  corr_matrix=None, h=0.67):
@@ -25,12 +35,24 @@ class MapCalculator(object):
         self.f_pivot = f_pivot
         self.specin_omega = spectral_index - 3
         self.h = h
-        if corr_matrix is None:
-            self.rho = np.eye(self.ndet)
+        if not isinstance(corr_matrix, NoiseCorrelationBase):
+            if corr_matrix is None:
+                self.rho = NoiseCorrelationConstantIdentity(self.ndet)
+            elif np.ndim(corr_matrix) == 0:
+                self.rho = NoiseCorrelationConstantR(self.ndet, corr_matrix)
+            elif np.ndim(corr_matrix) == 2:
+                self.rho = NoiseCorrelationConstant(corr_matrix)
+            else:
+                raise ValueError("`corr_matrix` must be `None`, a number, "
+                                 " a 2D array or a `NoiseCorrelationBase` "
+                                 " object.")
         else:
-            if corr_matrix.shape != (self.ndet, self.ndet):
-                raise ValueError("Wrong correlation matrix shape")
             self.rho = corr_matrix
+
+        if self.rho.ndet != self.rho.ndet:
+            raise ValueError("Your correlation matrix has the wrong "
+                             "dimensions.")
+
         # H0 in km/s/Mpc in Hz
         H0 = self.h * 3.24077929E-18
         # 2 pi^2 f^3 / 3 H0^2
@@ -226,9 +248,9 @@ class MapCalculator(object):
         S_f_diag = np.array([d.psd(f_use) for d in self.dets]).T
         # [n_f, n_det, n_det]
         S_f = np.sqrt(S_f_diag[:, :, None] * S_f_diag[:, None, :])
-        S_f *= self.rho[None, :, :]
+        S_f *= self.rho.get_corrmat(f_use)
         # Invert
-        iS_f = np.linalg.inv(S_f)
+        iS_f = np.linalg.pinv(S_f, rcond=self.rcond)
 
         # Get all maps
         antennas = np.zeros([self.ndet, self.ndet,
@@ -371,14 +393,14 @@ class MapCalculator(object):
         S_f_diag = np.array([d.psd(f_use) for d in self.dets]).T
         # [n_f, n_det, n_det]
         S_f = np.sqrt(S_f_diag[:, :, None] * S_f_diag[:, None, :])
-        S_f *= self.rho[None, :, :]
+        S_f *= self.rho.get_corrmat(f_use)
         # Invert
-        iS_f = np.linalg.inv(S_f)
+        iS_f = np.linalg.pinv(S_f, rcond=self.rcond)
 
         # Get all maps
-        rhos = np.zeros([self.ndet, self.ndet,
-                         len(t_use), len(f_use)],
-                        dtype=np.cdouble)
+        gammas = np.zeros([self.ndet, self.ndet,
+                           len(t_use), len(f_use)],
+                          dtype=np.cdouble)
         for i1 in range(self.ndet):
             for i2 in range(i1, self.ndet):
                 a12 = self._get_antenna_ij(i1, i2, t_use, f_use,
@@ -386,9 +408,9 @@ class MapCalculator(object):
                                            inc_baseline=True)
                 # Sky integral
                 ia12 = np.sum(a12, axis=-1) * pix_area
-                rhos[i1, i2, :, :] = ia12
+                gammas[i1, i2, :, :] = ia12
                 if i2 != i1:
-                    rhos[i2, i1, :, :] = np.conj(ia12)
+                    gammas[i2, i1, :, :] = np.conj(ia12)
 
         # Translation between Omega and I
         e_f = (self.f_pivot / f_use)**3 / self.norm_pivot
@@ -401,12 +423,12 @@ class MapCalculator(object):
             for iB in range(self.ndet):
                 iS_AB = iS_f[:, iA, iB]
                 for iC in range(self.ndet):
-                    rBC = rhos[iB, iC, :, :]
+                    rBC = gammas[iB, iC, :, :]
                     if iB == iC and no_autos[iB, iC]:
                         continue
                     for iD in range(self.ndet):
                         iS_CD = iS_f[:, iC, iD]
-                        rDA = rhos[iD, iA, :, :]
+                        rDA = gammas[iD, iA, :, :]
                         if iA == iD and no_autos[iA, iD]:
                             continue
                         ff = prefac*iS_AB*iS_CD
@@ -515,9 +537,9 @@ class MapCalculator(object):
         S_f_diag = np.array([d.psd(f_use) for d in self.dets]).T
         # [n_f, n_det, n_det]
         S_f = np.sqrt(S_f_diag[:, :, None] * S_f_diag[:, None, :])
-        S_f *= self.rho[None, :, :]
+        S_f *= self.rho.get_corrmat(f_use)
         # Invert
-        iS_f = np.linalg.inv(S_f)
+        iS_f = np.linalg.pinv(S_f, rcond=self.rcond)
 
         # Get antenna alms
         aalms_r = np.zeros([self.ndet, self.ndet,

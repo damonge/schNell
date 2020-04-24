@@ -157,6 +157,11 @@
   <h1>Source code for schnell.mapping</h1><div class="highlight"><pre>
 <span class="kn">import</span> <span class="nn">healpy</span> <span class="k">as</span> <span class="nn">hp</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">.correlation</span> <span class="k">import</span> <span class="p">(</span>
+    <span class="n">NoiseCorrelationBase</span><span class="p">,</span>
+    <span class="n">NoiseCorrelationConstant</span><span class="p">,</span>
+    <span class="n">NoiseCorrelationConstantIdentity</span><span class="p">,</span>
+    <span class="n">NoiseCorrelationConstantR</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="MapCalculator"><a class="viewcode-back" href="../../mapping.html#schnell.mapping.MapCalculator">[docs]</a><span class="k">class</span> <span class="nc">MapCalculator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -169,11 +174,16 @@
 <span class="sd">        spectral_index: power-law spectral index. This should correspond</span>
 <span class="sd">            to the index in units of Omega_GW, not intensity.</span>
 <span class="sd">        corr_matrix: noise correlation matrix for the array. If `None`</span>
-<span class="sd">            the identity is assumed.</span>
+<span class="sd">            the identity is assumed. If a constant, this will be assumed</span>
+<span class="sd">            to be the correlation coefficient between pairs of different</span>
+<span class="sd">            detectors. If a 2D array, it will be the frequency-independent</span>
+<span class="sd">            correlation matrix. Otherwise, pass a</span>
+<span class="sd">            :class:`~schnell.NoiseCorrelationBase` object.</span>
 <span class="sd">        h: value of the Hubble constant in units of 100 km/s/Mpc</span>
 <span class="sd">            (default: 0.67).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">clight</span> <span class="o">=</span> <span class="mf">299792458.</span>
+    <span class="n">rcond</span> <span class="o">=</span> <span class="mi">1</span><span class="n">E</span><span class="o">-</span><span class="mi">10</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">det_array</span><span class="p">,</span> <span class="n">f_pivot</span><span class="o">=</span><span class="mf">63.</span><span class="p">,</span> <span class="n">spectral_index</span><span class="o">=</span><span class="mf">2.</span><span class="o">/</span><span class="mf">3.</span><span class="p">,</span>
                  <span class="n">corr_matrix</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">h</span><span class="o">=</span><span class="mf">0.67</span><span class="p">):</span>
@@ -182,12 +192,24 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">f_pivot</span> <span class="o">=</span> <span class="n">f_pivot</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">specin_omega</span> <span class="o">=</span> <span class="n">spectral_index</span> <span class="o">-</span> <span class="mi">3</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">h</span> <span class="o">=</span> <span class="n">h</span>
-        <span class="k">if</span> <span class="n">corr_matrix</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">rho</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ndet</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">corr_matrix</span><span class="p">,</span> <span class="n">NoiseCorrelationBase</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">corr_matrix</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">rho</span> <span class="o">=</span> <span class="n">NoiseCorrelationConstantIdentity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ndet</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="n">ndim</span><span class="p">(</span><span class="n">corr_matrix</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">rho</span> <span class="o">=</span> <span class="n">NoiseCorrelationConstantR</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ndet</span><span class="p">,</span> <span class="n">corr_matrix</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="n">ndim</span><span class="p">(</span><span class="n">corr_matrix</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">rho</span> <span class="o">=</span> <span class="n">NoiseCorrelationConstant</span><span class="p">(</span><span class="n">corr_matrix</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;`corr_matrix` must be `None`, a number, &quot;</span>
+                                 <span class="s2">&quot; a 2D array or a `NoiseCorrelationBase` &quot;</span>
+                                 <span class="s2">&quot; object.&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">corr_matrix</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ndet</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndet</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Wrong correlation matrix shape&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">rho</span> <span class="o">=</span> <span class="n">corr_matrix</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rho</span><span class="o">.</span><span class="n">ndet</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rho</span><span class="o">.</span><span class="n">ndet</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Your correlation matrix has the wrong &quot;</span>
+                             <span class="s2">&quot;dimensions.&quot;</span><span class="p">)</span>
+
         <span class="c1"># H0 in km/s/Mpc in Hz</span>
         <span class="n">H0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">h</span> <span class="o">*</span> <span class="mf">3.24077929E-18</span>
         <span class="c1"># 2 pi^2 f^3 / 3 H0^2</span>
@@ -383,9 +405,9 @@
         <span class="n">S_f_diag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">d</span><span class="o">.</span><span class="n">psd</span><span class="p">(</span><span class="n">f_use</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dets</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
         <span class="c1"># [n_f, n_det, n_det]</span>
         <span class="n">S_f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">S_f_diag</span><span class="p">[:,</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">S_f_diag</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:])</span>
-        <span class="n">S_f</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rho</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
+        <span class="n">S_f</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rho</span><span class="o">.</span><span class="n">get_corrmat</span><span class="p">(</span><span class="n">f_use</span><span class="p">)</span>
         <span class="c1"># Invert</span>
-        <span class="n">iS_f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">S_f</span><span class="p">)</span>
+        <span class="n">iS_f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">pinv</span><span class="p">(</span><span class="n">S_f</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">rcond</span><span class="p">)</span>
 
         <span class="c1"># Get all maps</span>
         <span class="n">antennas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">ndet</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndet</span><span class="p">,</span>
@@ -528,14 +550,14 @@
         <span class="n">S_f_diag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">d</span><span class="o">.</span><span class="n">psd</span><span class="p">(</span><span class="n">f_use</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dets</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
         <span class="c1"># [n_f, n_det, n_det]</span>
         <span class="n">S_f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">S_f_diag</span><span class="p">[:,</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">S_f_diag</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:])</span>
-        <span class="n">S_f</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rho</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
+        <span class="n">S_f</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rho</span><span class="o">.</span><span class="n">get_corrmat</span><span class="p">(</span><span class="n">f_use</span><span class="p">)</span>
         <span class="c1"># Invert</span>
-        <span class="n">iS_f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">S_f</span><span class="p">)</span>
+        <span class="n">iS_f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">pinv</span><span class="p">(</span><span class="n">S_f</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">rcond</span><span class="p">)</span>
 
         <span class="c1"># Get all maps</span>
-        <span class="n">rhos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">ndet</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndet</span><span class="p">,</span>
-                         <span class="nb">len</span><span class="p">(</span><span class="n">t_use</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">f_use</span><span class="p">)],</span>
-                        <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">cdouble</span><span class="p">)</span>
+        <span class="n">gammas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">ndet</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndet</span><span class="p">,</span>
+                           <span class="nb">len</span><span class="p">(</span><span class="n">t_use</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">f_use</span><span class="p">)],</span>
+                          <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">cdouble</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i1</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ndet</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">i2</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndet</span><span class="p">):</span>
                 <span class="n">a12</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_antenna_ij</span><span class="p">(</span><span class="n">i1</span><span class="p">,</span> <span class="n">i2</span><span class="p">,</span> <span class="n">t_use</span><span class="p">,</span> <span class="n">f_use</span><span class="p">,</span>
@@ -543,9 +565,9 @@
                                            <span class="n">inc_baseline</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                 <span class="c1"># Sky integral</span>
                 <span class="n">ia12</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">a12</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">pix_area</span>
-                <span class="n">rhos</span><span class="p">[</span><span class="n">i1</span><span class="p">,</span> <span class="n">i2</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">ia12</span>
+                <span class="n">gammas</span><span class="p">[</span><span class="n">i1</span><span class="p">,</span> <span class="n">i2</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">ia12</span>
                 <span class="k">if</span> <span class="n">i2</span> <span class="o">!=</span> <span class="n">i1</span><span class="p">:</span>
-                    <span class="n">rhos</span><span class="p">[</span><span class="n">i2</span><span class="p">,</span> <span class="n">i1</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">conj</span><span class="p">(</span><span class="n">ia12</span><span class="p">)</span>
+                    <span class="n">gammas</span><span class="p">[</span><span class="n">i2</span><span class="p">,</span> <span class="n">i1</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">conj</span><span class="p">(</span><span class="n">ia12</span><span class="p">)</span>
 
         <span class="c1"># Translation between Omega and I</span>
         <span class="n">e_f</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">f_pivot</span> <span class="o">/</span> <span class="n">f_use</span><span class="p">)</span><span class="o">**</span><span class="mi">3</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm_pivot</span>
@@ -558,12 +580,12 @@
             <span class="k">for</span> <span class="n">iB</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ndet</span><span class="p">):</span>
                 <span class="n">iS_AB</span> <span class="o">=</span> <span class="n">iS_f</span><span class="p">[:,</span> <span class="n">iA</span><span class="p">,</span> <span class="n">iB</span><span class="p">]</span>
                 <span class="k">for</span> <span class="n">iC</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ndet</span><span class="p">):</span>
-                    <span class="n">rBC</span> <span class="o">=</span> <span class="n">rhos</span><span class="p">[</span><span class="n">iB</span><span class="p">,</span> <span class="n">iC</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
+                    <span class="n">rBC</span> <span class="o">=</span> <span class="n">gammas</span><span class="p">[</span><span class="n">iB</span><span class="p">,</span> <span class="n">iC</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
                     <span class="k">if</span> <span class="n">iB</span> <span class="o">==</span> <span class="n">iC</span> <span class="ow">and</span> <span class="n">no_autos</span><span class="p">[</span><span class="n">iB</span><span class="p">,</span> <span class="n">iC</span><span class="p">]:</span>
                         <span class="k">continue</span>
                     <span class="k">for</span> <span class="n">iD</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ndet</span><span class="p">):</span>
                         <span class="n">iS_CD</span> <span class="o">=</span> <span class="n">iS_f</span><span class="p">[:,</span> <span class="n">iC</span><span class="p">,</span> <span class="n">iD</span><span class="p">]</span>
-                        <span class="n">rDA</span> <span class="o">=</span> <span class="n">rhos</span><span class="p">[</span><span class="n">iD</span><span class="p">,</span> <span class="n">iA</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
+                        <span class="n">rDA</span> <span class="o">=</span> <span class="n">gammas</span><span class="p">[</span><span class="n">iD</span><span class="p">,</span> <span class="n">iA</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
                         <span class="k">if</span> <span class="n">iA</span> <span class="o">==</span> <span class="n">iD</span> <span class="ow">and</span> <span class="n">no_autos</span><span class="p">[</span><span class="n">iA</span><span class="p">,</span> <span class="n">iD</span><span class="p">]:</span>
                             <span class="k">continue</span>
                         <span class="n">ff</span> <span class="o">=</span> <span class="n">prefac</span><span class="o">*</span><span class="n">iS_AB</span><span class="o">*</span><span class="n">iS_CD</span>
@@ -672,9 +694,9 @@
         <span class="n">S_f_diag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">d</span><span class="o">.</span><span class="n">psd</span><span class="p">(</span><span class="n">f_use</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dets</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
         <span class="c1"># [n_f, n_det, n_det]</span>
         <span class="n">S_f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">S_f_diag</span><span class="p">[:,</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">S_f_diag</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:])</span>
-        <span class="n">S_f</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rho</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
+        <span class="n">S_f</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rho</span><span class="o">.</span><span class="n">get_corrmat</span><span class="p">(</span><span class="n">f_use</span><span class="p">)</span>
         <span class="c1"># Invert</span>
-        <span class="n">iS_f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">S_f</span><span class="p">)</span>
+        <span class="n">iS_f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">pinv</span><span class="p">(</span><span class="n">S_f</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">rcond</span><span class="p">)</span>
 
         <span class="c1"># Get antenna alms</span>
         <span class="n">aalms_r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">ndet</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndet</span><span class="p">,</span>

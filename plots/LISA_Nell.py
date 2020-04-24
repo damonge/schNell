@@ -9,12 +9,9 @@ rc('text', usetex=True)
 t_obs = 4
 f_ref = 1E-2
 nside = 32
-r = -0.2
 
 dets = [snl.LISADetector(i) for i in range(3)]
-rho = np.array([[1, r, r],
-                [r, 1, r],
-                [r, r, 1]])
+rho = snl.NoiseCorrelationLISA(dets[0])
 mca = snl.MapCalculator(dets, f_pivot=f_ref,
                         corr_matrix=rho)
 mcb = snl.MapCalculator([dets[0]], f_pivot=f_ref)

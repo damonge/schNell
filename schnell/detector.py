@@ -401,10 +401,9 @@ class LISADetector(Detector):
                   np.exp(1j*phase2)*sinc2)
         return tr
 
-    def psd(self, f):
-        """ Returns noise PSD as a function of frequency.
-        Uses Eq. 1 from arXiv:1803.01944 (without background
-        component).
+    def psd_A(self, f):
+        """ Returns auto-noise PSD as a function of frequency.
+        Uses Eq. 55 from arXiv:1908.00546.
 
         Args:
             f: array of frequencies (in Hz).
@@ -413,15 +412,45 @@ class LISADetector(Detector):
             array_like: array of PSD values in units of \
                 1/Hz.
         """
-        # Equation 1 from 1803.01944 (without background)
-        # TODO: do these curves assume that you already have
-        # 2 independent detectors?
+        # Equation 55 from 1908.00546
         fstar = self.clight / (2 * np.pi * self.L)
-        Poms = (1.5E-11)**2*(1+(2E-3/f)**4)
-        Pacc = (3E-15)**2 * (1 + (4E-4/f)**2)*(1+(f/8E-3)**4)/(2*np.pi*f)**4
-        Pn = (Poms+2*(1+np.cos(f/fstar)**2)*Pacc) / self.L**2
+        Poms = (1.5E-11)**2
+        Pacc = (3E-15)**2 * (1 + (4E-4/f)**2)/(2*np.pi*f)**4
+        Pn = (4*Poms+8*(1+np.cos(f/fstar)**2)*Pacc) / self.L**2
 
         return Pn
+
+    def psd_X(self, f):
+        """ Returns cross-noise PSD as a function of frequency.
+        Uses Eq. 56 from arXiv:1908.00546.
+
+        Args:
+            f: array of frequencies (in Hz).
+
+        Returns:
+            array_like: array of PSD values in units of \
+                1/Hz.
+        """
+        # Equation 56 from 1908.00546
+        fstar = self.clight / (2 * np.pi * self.L)
+        Poms = (1.5E-11)**2
+        Pacc = (3E-15)**2 * (1 + (4E-4/f)**2)/(2*np.pi*f)**4
+        Pn = - (2*Poms+8*Pacc) * np.cos(f/fstar) / self.L**2
+
+        return Pn
+
+    def psd(self, f):
+        """ Returns noise PSD as a function of frequency.
+        Uses Eq. 55 from arXiv:1908.00546.
+
+        Args:
+            f: array of frequencies (in Hz).
+
+        Returns:
+            array_like: array of PSD values in units of \
+                1/Hz.
+        """
+        return self.psd_A(f)
 
     def get_position(self, t):
         """ Returns a 2D array containing the 3D position of

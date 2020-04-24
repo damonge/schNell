@@ -20,6 +20,7 @@ dets = {'Hanford':     snl.GroundDetector('Hanford',     46.4, -119.4, 171.8,
         'Kagra':       snl.GroundDetector('KAGRA',       36.3,  137.2, 225.0,
                                           'data/KAGRA.txt')}
 
+
 def compute_nice_minmax(mp):
     mn = np.amin(mp)
     mx = np.amax(mp)
@@ -30,6 +31,7 @@ def compute_nice_minmax(mp):
     mno = imn*10.**(emn-1)
     mxo = imx*10.**(emx-2)
     return mno, mxo
+
 
 # Initialize the map calculators
 mc_HL = snl.MapCalculator([dets['Hanford'], dets['Livingstone']],
@@ -51,8 +53,10 @@ for i, lf in enumerate([1, 2, 3]):
     hp.mollview(np.real(resp_HV), sub=420+2*i+2,
                 notext=True, cbar=True, min=mn, max=mx,
                 title=r'${\rm Re}({\cal A}_{\rm HV}(f, \hat{\bf n})),\,\,f=10^{%d}\,{\rm Hz}$' % lf)
-antenna_HL = np.real(mc_HL.get_antenna(0, 1, 0., f, theta, phi, inc_baseline=False))
-antenna_HV = np.real(mc_HV.get_antenna(0, 1, 0., f, theta, phi, inc_baseline=False))
+antenna_HL = np.real(mc_HL.get_antenna(0, 1, 0., f, theta, phi,
+                                       inc_baseline=False))
+antenna_HV = np.real(mc_HV.get_antenna(0, 1, 0., f, theta, phi,
+                                       inc_baseline=False))
 mn, mx = compute_nice_minmax(antenna_HL)
 hp.mollview(antenna_HL, sub=427,
             notext=True, cbar=True, min=mn, max=mx,

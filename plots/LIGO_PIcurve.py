@@ -35,10 +35,10 @@ pi2_HLVKa = mc.get_pi_curve(obs_time, freqs, nside,
                             no_autos=False, nsigma=2)
 
 # Plotting
-plt.plot(freqs, pi2_HL,'k--', label='LIGO')
-plt.plot(freqs, pi2_HLV,'k:', label='+ Virgo')
-plt.plot(freqs, pi2_HLVK,'k-', label='+ KAGRA')
-plt.plot(freqs, pi2_HLVKa,'k-.', label='+ auto correlations')
+plt.plot(freqs, pi2_HL, 'k--', label='LIGO')
+plt.plot(freqs, pi2_HLV, 'k:', label='+ Virgo')
+plt.plot(freqs, pi2_HLVK, 'k-', label='+ KAGRA')
+plt.plot(freqs, pi2_HLVKa, 'k-.', label='+ auto correlations')
 plt.loglog()
 plt.xlim([10, 1000])
 plt.ylim([1E-10, 1E-5])

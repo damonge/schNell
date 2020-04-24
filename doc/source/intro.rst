@@ -5,7 +5,8 @@ Overview
 `schNell` is composed of two main classes:
 
 - :class:`~schnell.Detector`\s. These contain information about each individual detector of the network (their positions, noise properties, orientation etc.).
-- :class:`~schnell.MapCalculator`\s. These objects combine a list of :class:`~schnell.Detector`\s into a network and compute the correspondin map-level noise properties arising from their correlations.
+- :class:`~schnell.NoiseCorrelation`\s. These describe the noise-level correlation between pairs of detectors.
+- :class:`~schnell.MapCalculator`\s. These objects combine a list of :class:`~schnell.Detector`\s into a network (potentially together with a :class:`~schnell.NoiseCorrelation` object) and compute the corresponding map-level noise properties arising from their correlations.
 
 A quick but thorough description of how these two classes can be used to compute different quantities can be found in `here <https://github.com/damonge/schNell/blob/master/examples/Nell_example.ipynb>`_.
 

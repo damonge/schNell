@@ -558,10 +558,9 @@
                   <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">phase2</span><span class="p">)</span><span class="o">*</span><span class="n">sinc2</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">tr</span>
 
-<div class="viewcode-block" id="LISADetector.psd"><a class="viewcode-back" href="../../detector.html#schnell.detector.LISADetector.psd">[docs]</a>    <span class="k">def</span> <span class="nf">psd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Returns noise PSD as a function of frequency.</span>
-<span class="sd">        Uses Eq. 1 from arXiv:1803.01944 (without background</span>
-<span class="sd">        component).</span>
+<div class="viewcode-block" id="LISADetector.psd_A"><a class="viewcode-back" href="../../detector.html#schnell.detector.LISADetector.psd_A">[docs]</a>    <span class="k">def</span> <span class="nf">psd_A</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns auto-noise PSD as a function of frequency.</span>
+<span class="sd">        Uses Eq. 55 from arXiv:1908.00546.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            f: array of frequencies (in Hz).</span>
@@ -570,15 +569,45 @@
 <span class="sd">            array_like: array of PSD values in units of \</span>
 <span class="sd">                1/Hz.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Equation 1 from 1803.01944 (without background)</span>
-        <span class="c1"># TODO: do these curves assume that you already have</span>
-        <span class="c1"># 2 independent detectors?</span>
+        <span class="c1"># Equation 55 from 1908.00546</span>
         <span class="n">fstar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clight</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">L</span><span class="p">)</span>
-        <span class="n">Poms</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.5E-11</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="p">(</span><span class="mi">2</span><span class="n">E</span><span class="o">-</span><span class="mi">3</span><span class="o">/</span><span class="n">f</span><span class="p">)</span><span class="o">**</span><span class="mi">4</span><span class="p">)</span>
-        <span class="n">Pacc</span> <span class="o">=</span> <span class="p">(</span><span class="mi">3</span><span class="n">E</span><span class="o">-</span><span class="mi">15</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="mi">4</span><span class="n">E</span><span class="o">-</span><span class="mi">4</span><span class="o">/</span><span class="n">f</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="p">(</span><span class="n">f</span><span class="o">/</span><span class="mi">8</span><span class="n">E</span><span class="o">-</span><span class="mi">3</span><span class="p">)</span><span class="o">**</span><span class="mi">4</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">f</span><span class="p">)</span><span class="o">**</span><span class="mi">4</span>
-        <span class="n">Pn</span> <span class="o">=</span> <span class="p">(</span><span class="n">Poms</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">f</span><span class="o">/</span><span class="n">fstar</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="n">Pacc</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">L</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">Poms</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.5E-11</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">Pacc</span> <span class="o">=</span> <span class="p">(</span><span class="mi">3</span><span class="n">E</span><span class="o">-</span><span class="mi">15</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="mi">4</span><span class="n">E</span><span class="o">-</span><span class="mi">4</span><span class="o">/</span><span class="n">f</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">f</span><span class="p">)</span><span class="o">**</span><span class="mi">4</span>
+        <span class="n">Pn</span> <span class="o">=</span> <span class="p">(</span><span class="mi">4</span><span class="o">*</span><span class="n">Poms</span><span class="o">+</span><span class="mi">8</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">f</span><span class="o">/</span><span class="n">fstar</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="n">Pacc</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">L</span><span class="o">**</span><span class="mi">2</span>
 
         <span class="k">return</span> <span class="n">Pn</span></div>
+
+<div class="viewcode-block" id="LISADetector.psd_X"><a class="viewcode-back" href="../../detector.html#schnell.detector.LISADetector.psd_X">[docs]</a>    <span class="k">def</span> <span class="nf">psd_X</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns cross-noise PSD as a function of frequency.</span>
+<span class="sd">        Uses Eq. 56 from arXiv:1908.00546.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            f: array of frequencies (in Hz).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            array_like: array of PSD values in units of \</span>
+<span class="sd">                1/Hz.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Equation 56 from 1908.00546</span>
+        <span class="n">fstar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clight</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">L</span><span class="p">)</span>
+        <span class="n">Poms</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.5E-11</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">Pacc</span> <span class="o">=</span> <span class="p">(</span><span class="mi">3</span><span class="n">E</span><span class="o">-</span><span class="mi">15</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="mi">4</span><span class="n">E</span><span class="o">-</span><span class="mi">4</span><span class="o">/</span><span class="n">f</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">f</span><span class="p">)</span><span class="o">**</span><span class="mi">4</span>
+        <span class="n">Pn</span> <span class="o">=</span> <span class="o">-</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">Poms</span><span class="o">+</span><span class="mi">8</span><span class="o">*</span><span class="n">Pacc</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">f</span><span class="o">/</span><span class="n">fstar</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">L</span><span class="o">**</span><span class="mi">2</span>
+
+        <span class="k">return</span> <span class="n">Pn</span></div>
+
+<div class="viewcode-block" id="LISADetector.psd"><a class="viewcode-back" href="../../detector.html#schnell.detector.LISADetector.psd">[docs]</a>    <span class="k">def</span> <span class="nf">psd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns noise PSD as a function of frequency.</span>
+<span class="sd">        Uses Eq. 55 from arXiv:1908.00546.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            f: array of frequencies (in Hz).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            array_like: array of PSD values in units of \</span>
+<span class="sd">                1/Hz.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">psd_A</span><span class="p">(</span><span class="n">f</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="LISADetector.get_position"><a class="viewcode-back" href="../../detector.html#schnell.detector.LISADetector.get_position">[docs]</a>    <span class="k">def</span> <span class="nf">get_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Returns a 2D array containing the 3D position of</span>

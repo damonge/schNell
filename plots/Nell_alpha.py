@@ -1,7 +1,6 @@
 import numpy as np
 import schnell as snl
 import matplotlib.pyplot as plt
-import os
 from matplotlib import rc
 rc('font', **{'family': 'sans-serif',
               'sans-serif': ['Helvetica']})
