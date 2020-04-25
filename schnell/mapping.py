@@ -26,13 +26,13 @@ class MapCalculator(object):
             (default: 0.67).
     """
     clight = 299792458.
-    rcond = 1E-10
 
     def __init__(self, det_array, f_pivot=63., spectral_index=2./3.,
                  corr_matrix=None, h=0.67):
         self.dets = det_array
         self.ndet = len(det_array)
         self.f_pivot = f_pivot
+        self.rcond = 1E-10
         self.specin_omega = spectral_index - 3
         self.h = h
         if not isinstance(corr_matrix, NoiseCorrelationBase):
@@ -134,7 +134,7 @@ class MapCalculator(object):
             bn = self._get_baseline_product(t_use, ct, st, cp, sp,
                                             dA, dB)
             # [nt, nf, npix]
-            phase = np.exp(1j*2*np.pi *
+            phase = np.exp(-1j*2*np.pi *
                            f_use[None, :, None] *
                            bn[:, None, :] / self.clight)
             if pol:

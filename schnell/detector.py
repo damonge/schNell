@@ -381,10 +381,6 @@ class LISADetector(Detector):
             self.e = 0.00482419
 
     def _get_transfer_LISA(self, u, f, nv):
-        def sinc(x):
-            x_np = x / np.pi
-            return np.sinc(x_np)
-
         # Eq. 48 in astro-ph/0105374
         # xf = f/(2*fstar)/pi, fstar = c/(2*pi*L)
         xf = self.L * f / self.clight
@@ -392,11 +388,12 @@ class LISADetector(Detector):
         # u,nv is [nt, npix]
         u_dot_n = np.sum(u[:, :, None] * nv[:, None, :],
                          axis=0)
-        # For some reason Numpy's sinc is sin(pi*x) / (pi*x)
+
+        # For some reason Numpy's sinc(x) is sin(pi*x) / (pi*x)
         sinc1 = np.sinc(xf[None, :, None]*(1-u_dot_n[:, None, :]))
         sinc2 = np.sinc(xf[None, :, None]*(1+u_dot_n[:, None, :]))
-        phase1 = -(np.pi*xf)[None, :, None]*(3+u_dot_n[:, None, :])
-        phase2 = -(np.pi*xf)[None, :, None]*(1+u_dot_n[:, None, :])
+        phase1 = -np.pi*xf[None, :, None]*(3+u_dot_n[:, None, :])
+        phase2 = -np.pi*xf[None, :, None]*(1+u_dot_n[:, None, :])
         tr = 0.5*(np.exp(1j*phase1)*sinc1 +
                   np.exp(1j*phase2)*sinc2)
         return tr
@@ -474,6 +471,13 @@ class LISADetector(Detector):
                          for i in range(3)])
 
     def _pos_single(self, t, n):
+        #o = (t+1)/(t+1)
+        #if n%3==0:
+        #    return np.array([0*o, 0*o, 0*o])
+        #elif n%3==1:
+        #    return np.array([o*1/2,o*np.sqrt(3)/2,0*o])*self.L
+        #elif n%3==2:
+        #    return np.array([-o*1/2,o*np.sqrt(3)/2,0*o])*self.L
         # Equation 1 from gr-qc/0311069
         a = self.trans_freq_earth * t + self.kap
         b = 2 * np.pi * n / 3. + self.lam
