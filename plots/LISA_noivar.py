@@ -79,10 +79,10 @@ def make_videos(inoi_plot, prefix, remove_frames=True):
 
 
 make_videos(inoi_tot, 'vid_LISA_tt', remove_frames=True)
-plot_inoise_map(inoi_tot[0], lims=[0, 3.5],
+plot_inoise_map(inoi_tot[0], lims=[0, 0.75],
                 which='Instantaneous',
                 figname='noivar_LISA_tt_inst.pdf')
-plot_inoise_map(np.mean(inoi_tot, axis=0), lims=[0, 1.8],
+plot_inoise_map(np.mean(inoi_tot, axis=0), lims=[0, 0.4],
                 which='Integrated',
                 figname='noivar_LISA_tt_cumul.pdf')
 plt.show()
