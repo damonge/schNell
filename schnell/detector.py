@@ -362,6 +362,9 @@ class LISADetector(Detector):
         is_L5Gm (bool): whether the arm length should be
             5E9 meters (otherwise 2.5E9 meters will be assumed)
             (default `False`).
+        static (bool): if `True`, a static configuration corresponding
+            to a perfect equilateral triangle in the x-y plane will
+            be assumed.
     """
     trans_freq_earth = 2 * np.pi / (365 * 24 * 3600)
     R_AU = 1.496E11
@@ -369,7 +372,8 @@ class LISADetector(Detector):
     lam = 0  # initial orientation
     clight = 299792458.
 
-    def __init__(self, detector_id, is_L5Gm=False):
+    def __init__(self, detector_id, is_L5Gm=False,
+                 static=False):
         self.i_d = detector_id % 3
         self.name = 'LISA_%d' % self.i_d
         self.get_transfer = self._get_transfer_LISA
@@ -379,6 +383,7 @@ class LISADetector(Detector):
         else:  # 2.5 Gm arm length
             self.L = 2.5E9
             self.e = 0.00482419
+        self.static = static
 
     def _get_transfer_LISA(self, u, f, nv):
         # Eq. 48 in astro-ph/0105374
@@ -471,31 +476,42 @@ class LISADetector(Detector):
                          for i in range(3)])
 
     def _pos_single(self, t, n):
-        #o = (t+1)/(t+1)
-        #if n%3==0:
-        #    return np.array([0*o, 0*o, 0*o])
-        #elif n%3==1:
-        #    return np.array([o*1/2,o*np.sqrt(3)/2,0*o])*self.L
-        #elif n%3==2:
-        #    return np.array([-o*1/2,o*np.sqrt(3)/2,0*o])*self.L
-        # Equation 1 from gr-qc/0311069
-        a = self.trans_freq_earth * t + self.kap
-        b = 2 * np.pi * n / 3. + self.lam
-        e = self.e
-        e2 = e*e
-        x = np.cos(a) + \
-            0.5 * e * (np.cos(2*a-b) - 3*np.cos(b)) + \
-            0.125 * e2 * (3*np.cos(3*a-2*b) -
-                          10*np.cos(a) -
-                          5*np.cos(a-2*b))
-        y = np.sin(a) + \
-            0.5 * e * (np.sin(2*a-b) - 3*np.sin(b)) + \
-            0.125 * e2 * (3*np.sin(3*a-2*b) -
-                          10*np.sin(a) +
-                          5*np.sin(a-2*b))
-        z = np.sqrt(3.) * (-e * np.cos(a-b) +
-                           e2 * (1 + 2*np.sin(a-b)**2))
-        return self.R_AU * np.array([x, y, z])
+        if self.static:
+            if np.ndim(t) == 0:
+                ll = self.L
+                z = 0
+            else:
+                ll = self.L * np.ones_like(t)
+                z = np.zeros_like(t)
+            if n % 3 == 0:
+                return np.array([z, z, z])
+            elif n % 3 == 1:
+                return np.array([ll*1/2,
+                                 ll*np.sqrt(3)/2,
+                                 z])
+            elif n % 3 == 2:
+                return np.array([-ll*1/2,
+                                 ll*np.sqrt(3)/2,
+                                 z])
+        else:
+            # Equation 1 from gr-qc/0311069
+            a = self.trans_freq_earth * t + self.kap
+            b = 2 * np.pi * n / 3. + self.lam
+            e = self.e
+            e2 = e*e
+            x = np.cos(a) + \
+                0.5 * e * (np.cos(2*a-b) - 3*np.cos(b)) + \
+                0.125 * e2 * (3*np.cos(3*a-2*b) -
+                              10*np.cos(a) -
+                              5*np.cos(a-2*b))
+            y = np.sin(a) + \
+                0.5 * e * (np.sin(2*a-b) - 3*np.sin(b)) + \
+                0.125 * e2 * (3*np.sin(3*a-2*b) -
+                              10*np.sin(a) +
+                              5*np.sin(a-2*b))
+            z = np.sqrt(3.) * (-e * np.cos(a-b) +
+                               e2 * (1 + 2*np.sin(a-b)**2))
+            return self.R_AU * np.array([x, y, z])
 
     def get_u_v(self, t):
         """ Returns unit vectors in the directions of the

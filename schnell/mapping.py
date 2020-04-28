@@ -59,6 +59,46 @@ class MapCalculator(object):
         # Normalization for I->Omega translation
         self.norm_pivot = 4 * np.pi**2 * self.f_pivot**3 / (3 * H0**2)
 
+    def _get_iS_f(self, f, pmat):
+        # Get S matrix:
+        # [n_f, n_det]
+        S_f_diag = np.array([d.psd(f) for d in self.dets]).T
+        # [n_f, n_det, n_det]
+        S_f = np.sqrt(S_f_diag[:, :, None] * S_f_diag[:, None, :])
+        S_f *= self.rho.get_corrmat(f)
+        if pmat is not None:
+            S_f = np.einsum('ijk,lj,mk', S_f, pmat, pmat)
+        # Invert
+        iS_f = np.linalg.pinv(S_f, rcond=self.rcond)
+        return iS_f
+
+    def _compute_projector(self, proj):
+        if proj is not None:
+            vecs = proj.get('vectors').copy()
+            if np.ndim(vecs) == 1:
+                vecs = np.array([vecs])
+            if np.ndim(vecs) != 2:
+                raise ValueError("Projection vectors have wrong shape")
+
+            # vecs is [nv, nd]
+            nv, nd = vecs.shape
+            if nd != self.ndet:
+                raise ValueError("Projection vectors have wrong shape")
+
+            # Compute covariance and pseudo-inverse
+            # C = v vT -> [nv, nd] [nd, nv] -> [nv, nv]
+            cov = np.einsum('ij,kj', vecs, vecs)
+            icov = np.linalg.pinv(cov)
+
+            # P = vT IC v -> [nd, nv] [nv, nv] [nv, nd] -> [nd, nd]
+            pmat = np.einsum('ik,ij,jl',
+                             vecs, icov, vecs)
+            if proj.get('deproject'):
+                pmat = np.eye(nd) - pmat
+        else:
+            pmat = None
+        return pmat
+
     def _precompute_skyvec(self, theta, phi):
         # Computes cos and sin for theta and phi.
         theta_use = np.atleast_1d(theta)
@@ -191,7 +231,8 @@ class MapCalculator(object):
         ax.set_axis_off()
 
     def get_Ninv_t(self, t, f, nside, is_fspacing_log=False,
-                   no_autos=False, deltaOmega_norm=True):
+                   no_autos=False, deltaOmega_norm=True,
+                   proj=None):
         """ Computes inverse noise variance map for a set of
         timeframes integrated over frequency.
 
@@ -211,9 +252,18 @@ class MapCalculator(object):
                 correlations for which the array element is `True`
                 will be removed.
             deltaOmega_norm: if `True`, the quantity being mapped is
-                :math:`\\delta\\Omega = (\\Omega/\bar{\\Omega}-1)/4\\pi`.
+                :math:`\\delta\\Omega = (\\Omega/\\bar{\\Omega}-1)/4\\pi`.
                 Otherwise the :math:`4\\pi` factor is omitted.
                 (Default: `True`).
+            proj (dictionary or `None`): if you want to project the data
+                onto a set of linear combinations of the detectors, pass
+                the linear coefficients of those here. `proj` should be
+                a dictionary with two items: 'vectors' containing a 2D
+                array (or a single vector) with the linear coefficients
+                as rows and 'deproj'. If 'deproj' is `True`, then those
+                linear combinations will actually be projeted out. If
+                `proj` is `None`, then no projection or de-projection
+                will happen.
 
         Returns:
             array_like: array of shape `[N_t, N_pix]` containing
@@ -231,6 +281,8 @@ class MapCalculator(object):
             no_autos = np.diag(no_autos)
         no_autos = np.array(no_autos)
 
+        pmat = self._compute_projector(proj)
+
         t_use = np.atleast_1d(t)
         f_use = f
         if is_fspacing_log:
@@ -244,13 +296,7 @@ class MapCalculator(object):
         ct, st, cp, sp = self._precompute_skyvec(th, ph)
 
         # Get S matrix:
-        # [n_f, n_det]
-        S_f_diag = np.array([d.psd(f_use) for d in self.dets]).T
-        # [n_f, n_det, n_det]
-        S_f = np.sqrt(S_f_diag[:, :, None] * S_f_diag[:, None, :])
-        S_f *= self.rho.get_corrmat(f_use)
-        # Invert
-        iS_f = np.linalg.pinv(S_f, rcond=self.rcond)
+        iS_f = self._get_iS_f(f_use, pmat)
 
         # Get all maps
         antennas = np.zeros([self.ndet, self.ndet,
@@ -264,6 +310,8 @@ class MapCalculator(object):
                 antennas[i1, i2, :, :, :] = a12
                 if i2 != i1:
                     antennas[i2, i1, :, :, :] = np.conj(a12)
+        if pmat is not None:
+            antennas = np.einsum('ijmno,ki,lj', antennas, pmat, pmat)
 
         # Prefactors
         e_f = (f_use / self.f_pivot)**self.specin_omega / self.norm_pivot
@@ -292,7 +340,7 @@ class MapCalculator(object):
 
     def get_pi_curve(self, t, f, nside, is_fspacing_log=False,
                      no_autos=False, beta_range=[-10, 10],
-                     nsigma=1):
+                     nsigma=1, proj=None):
         """ Computes the power-law-integrated (PI) sensitivity curve
         for this network (see arXiv:1310.5300).
 
@@ -318,6 +366,15 @@ class MapCalculator(object):
             beta_range: a list containing the range of power law indices
                 for which the PI curve will be computed.
             nsigma: S/N of the PI curve (default: 1-sigma).
+            proj (dictionary or `None`): if you want to project the data
+                onto a set of linear combinations of the detectors, pass
+                the linear coefficients of those here. `proj` should be
+                a dictionary with two items: 'vectors' containing a 2D
+                array (or a single vector) with the linear coefficients
+                as rows and 'deproj'. If 'deproj' is `True`, then those
+                linear combinations will actually be projeted out. If
+                `proj` is `None`, then no projection or de-projection
+                will happen.
 
         Returns:
             array_like: array of size `N_f`.
@@ -330,7 +387,8 @@ class MapCalculator(object):
         else:
             df = np.mean(np.diff(f)) * np.ones(len(f))
         inv_dsig2_dnu_dt = self.get_dsigm2_dnu_t(t_use, f_use, nside,
-                                                 no_autos=no_autos)
+                                                 no_autos=no_autos,
+                                                 proj=proj)
         # Sum over time
         if len(t_use) == 1:
             inv_dsig2_dnu = np.squeeze(inv_dsig2_dnu_dt * t)
@@ -349,7 +407,8 @@ class MapCalculator(object):
         pi = np.max(oms, axis=0)
         return pi
 
-    def get_dsigm2_dnu_t(self, t, f, nside, no_autos=False):
+    def get_dsigm2_dnu_t(self, t, f, nside, no_autos=False,
+                         proj=None):
         """ Computes :math:`d\\sigma^{-2}/df\\,dt` for a set
         of frequencies and times.
 
@@ -366,6 +425,15 @@ class MapCalculator(object):
                 removed. If a 2D array, all autos and cross-
                 correlations for which the array element is `True`
                 will be removed.
+            proj (dictionary or `None`): if you want to project the data
+                onto a set of linear combinations of the detectors, pass
+                the linear coefficients of those here. `proj` should be
+                a dictionary with two items: 'vectors' containing a 2D
+                array (or a single vector) with the linear coefficients
+                as rows and 'deproj'. If 'deproj' is `True`, then those
+                linear combinations will actually be projeted out. If
+                `proj` is `None`, then no projection or de-projection
+                will happen.
 
         Returns:
             array_like: array of shape `[N_t, N_f]`.
@@ -380,6 +448,8 @@ class MapCalculator(object):
             no_autos = np.diag(no_autos)
         no_autos = np.array(no_autos)
 
+        pmat = self._compute_projector(proj)
+
         t_use = np.atleast_1d(t)
         f_use = f
 
@@ -389,13 +459,7 @@ class MapCalculator(object):
         ct, st, cp, sp = self._precompute_skyvec(th, ph)
 
         # Get S matrix:
-        # [n_f, n_det]
-        S_f_diag = np.array([d.psd(f_use) for d in self.dets]).T
-        # [n_f, n_det, n_det]
-        S_f = np.sqrt(S_f_diag[:, :, None] * S_f_diag[:, None, :])
-        S_f *= self.rho.get_corrmat(f_use)
-        # Invert
-        iS_f = np.linalg.pinv(S_f, rcond=self.rcond)
+        iS_f = self._get_iS_f(f_use, pmat)
 
         # Get all maps
         gammas = np.zeros([self.ndet, self.ndet,
@@ -411,6 +475,8 @@ class MapCalculator(object):
                 gammas[i1, i2, :, :] = ia12
                 if i2 != i1:
                     gammas[i2, i1, :, :] = np.conj(ia12)
+        if pmat is not None:
+            gammas = np.einsum('ijmn,ki,lj', gammas, pmat, pmat)
 
         # Translation between Omega and I
         e_f = (self.f_pivot / f_use)**3 / self.norm_pivot
@@ -436,7 +502,7 @@ class MapCalculator(object):
         return np.squeeze(inoivar)
 
     def get_N_ell(self, t, f, nside, is_fspacing_log=False,
-                  no_autos=False, deltaOmega_norm=True):
+                  no_autos=False, deltaOmega_norm=True, proj=None):
         """ Computes :math:`N_\\ell` for this network.
 
         Args:
@@ -459,9 +525,18 @@ class MapCalculator(object):
                 correlations for which the array element is `True`
                 will be removed.
             deltaOmega_norm: if `True`, the quantity being mapped is
-                :math:`\\delta\\Omega = (\\Omega/\bar{\\Omega}-1)/4\\pi`.
+                :math:`\\delta\\Omega = (\\Omega/\\bar{\\Omega}-1)/4\\pi`.
                 Otherwise the :math:`4\\pi` factor is omitted.
                 (Default: `True`).
+            proj (dictionary or `None`): if you want to project the data
+                onto a set of linear combinations of the detectors, pass
+                the linear coefficients of those here. `proj` should be
+                a dictionary with two items: 'vectors' containing a 2D
+                array (or a single vector) with the linear coefficients
+                as rows and 'deproj'. If 'deproj' is `True`, then those
+                linear combinations will actually be projeted out. If
+                `proj` is `None`, then no projection or de-projection
+                will happen.
 
         Returns:
             array_like: array of size `N_l = 3 * nside` containing the noise
@@ -475,7 +550,7 @@ class MapCalculator(object):
         else:
             df = np.mean(np.diff(f)) * np.ones(len(f))
         gls = self.get_G_ell(t_use, f_use, nside, no_autos=no_autos,
-                             deltaOmega_norm=deltaOmega_norm)
+                             deltaOmega_norm=deltaOmega_norm, proj=proj)
         # Sum over frequencies
         gls = np.sum(gls * df[:, None, None], axis=0)
         # Sum over times
@@ -486,7 +561,8 @@ class MapCalculator(object):
             gls = np.sum(gls, axis=0) * dt
         return 1/gls
 
-    def get_G_ell(self, t, f, nside, no_autos=False, deltaOmega_norm=True):
+    def get_G_ell(self, t, f, nside, no_autos=False, deltaOmega_norm=True,
+                  proj=None):
         """ Computes :math:`G_\\ell` in Eq. 37 of the companion paper.
 
         Args:
@@ -502,9 +578,18 @@ class MapCalculator(object):
                 correlations for which the array element is `True`
                 will be removed.
             deltaOmega_norm: if `True`, the quantity being mapped is
-                :math:`\\delta\\Omega = (\\Omega/\bar{\\Omega}-1)/4\\pi`.
+                :math:`\\delta\\Omega = (\\Omega/\\bar{\\Omega}-1)/4\\pi`.
                 Otherwise the :math:`4\\pi` factor is omitted.
                 (Default: `True`).
+            proj (dictionary or `None`): if you want to project the data
+                onto a set of linear combinations of the detectors, pass
+                the linear coefficients of those here. `proj` should be
+                a dictionary with two items: 'vectors' containing a 2D
+                array (or a single vector) with the linear coefficients
+                as rows and 'deproj'. If 'deproj' is `True`, then those
+                linear combinations will actually be projeted out. If
+                `proj` is `None`, then no projection or de-projection
+                will happen.
 
         Returns:
             array_like: array of shape `[N_f, N_t, N_l]`, where
@@ -521,6 +606,8 @@ class MapCalculator(object):
             no_autos = np.diag(no_autos)
         no_autos = np.array(no_autos)
 
+        pmat = self._compute_projector(proj)
+
         t_use = np.atleast_1d(t)
         f_use = np.atleast_1d(f)
 
@@ -533,13 +620,7 @@ class MapCalculator(object):
         ct, st, cp, sp = self._precompute_skyvec(th, ph)
 
         # Get S matrix:
-        # [n_f, n_det]
-        S_f_diag = np.array([d.psd(f_use) for d in self.dets]).T
-        # [n_f, n_det, n_det]
-        S_f = np.sqrt(S_f_diag[:, :, None] * S_f_diag[:, None, :])
-        S_f *= self.rho.get_corrmat(f_use)
-        # Invert
-        iS_f = np.linalg.pinv(S_f, rcond=self.rcond)
+        iS_f = self._get_iS_f(f_use, pmat)
 
         # Get antenna alms
         aalms_r = np.zeros([self.ndet, self.ndet,
@@ -563,8 +644,12 @@ class MapCalculator(object):
                         aalms_r[i1, i2, i_t, i_f, :] = alm_r
                         aalms_i[i1, i2, i_t, i_f, :] = alm_i
                         if i2 != i1:
-                            aalms_r[i2, i1, i_t, i_f, :] = np.conj(alm_r)
-                            aalms_i[i2, i1, i_t, i_f, :] = np.conj(alm_i)
+                            aalms_r[i2, i1, i_t, i_f, :] = alm_r
+                            aalms_i[i2, i1, i_t, i_f, :] = -alm_i
+
+        if pmat is not None:
+            aalms_r = np.einsum('ijmno,ki,lj', aalms_r, pmat, pmat)
+            aalms_i = np.einsum('ijmno,ki,lj', aalms_i, pmat, pmat)
 
         # Prefactors
         e_f = (f_use / self.f_pivot)**self.specin_omega / self.norm_pivot

@@ -460,7 +460,7 @@ observing times (in s).</td>
 
 <dl class="class">
 <dt id="schnell.detector.LISADetector">
-<em class="property">class </em><code class="descclassname">schnell.detector.</code><code class="descname">LISADetector</code><span class="sig-paren">(</span><em>detector_id</em>, <em>is_L5Gm=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/detector.html#LISADetector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.detector.LISADetector" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">schnell.detector.</code><code class="descname">LISADetector</code><span class="sig-paren">(</span><em>detector_id</em>, <em>is_L5Gm=False</em>, <em>static=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/detector.html#LISADetector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.detector.LISADetector" title="Permalink to this definition">¶</a></dt>
 <dd><p><a class="reference internal" href="#schnell.detector.LISADetector" title="schnell.detector.LISADetector"><code class="xref py py-class docutils literal notranslate"><span class="pre">LISADetector</span></code></a> objects can be used to describe
 the properties of the LISA network.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -472,6 +472,9 @@ the properties of the LISA network.</p>
 <li><strong>is_L5Gm</strong> (<em>bool</em>) – whether the arm length should be
 5E9 meters (otherwise 2.5E9 meters will be assumed)
 (default <cite>False</cite>).</li>
+<li><strong>static</strong> (<em>bool</em>) – if <cite>True</cite>, a static configuration corresponding
+to a perfect equilateral triangle in the x-y plane will
+be assumed.</li>
 </ul>
 </td>
 </tr>

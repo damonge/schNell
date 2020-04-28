@@ -195,7 +195,7 @@ correlation matrix. Otherwise, pass a
 </table>
 <dl class="method">
 <dt id="schnell.mapping.MapCalculator.get_G_ell">
-<code class="descname">get_G_ell</code><span class="sig-paren">(</span><em>t</em>, <em>f</em>, <em>nside</em>, <em>no_autos=False</em>, <em>deltaOmega_norm=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/mapping.html#MapCalculator.get_G_ell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.mapping.MapCalculator.get_G_ell" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_G_ell</code><span class="sig-paren">(</span><em>t</em>, <em>f</em>, <em>nside</em>, <em>no_autos=False</em>, <em>deltaOmega_norm=True</em>, <em>proj=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/mapping.html#MapCalculator.get_G_ell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.mapping.MapCalculator.get_G_ell" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes <span class="math notranslate nohighlight">\(G_\ell\)</span> in Eq. 37 of the companion paper.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -214,9 +214,18 @@ removed. If a 2D array, all autos and cross-
 correlations for which the array element is <cite>True</cite>
 will be removed.</li>
 <li><strong>deltaOmega_norm</strong> – if <cite>True</cite>, the quantity being mapped is
-<span class="math notranslate nohighlight">\(\delta\Omega = (\Omega/ar{\Omega}-1)/4\pi\)</span>.
+<span class="math notranslate nohighlight">\(\delta\Omega = (\Omega/\bar{\Omega}-1)/4\pi\)</span>.
 Otherwise the <span class="math notranslate nohighlight">\(4\pi\)</span> factor is omitted.
 (Default: <cite>True</cite>).</li>
+<li><strong>proj</strong> (dictionary or <cite>None</cite>) – if you want to project the data
+onto a set of linear combinations of the detectors, pass
+the linear coefficients of those here. <cite>proj</cite> should be
+a dictionary with two items: ‘vectors’ containing a 2D
+array (or a single vector) with the linear coefficients
+as rows and ‘deproj’. If ‘deproj’ is <cite>True</cite>, then those
+linear combinations will actually be projeted out. If
+<cite>proj</cite> is <cite>None</cite>, then no projection or de-projection
+will happen.</li>
 </ul>
 </td>
 </tr>
@@ -238,7 +247,7 @@ frequency and time.</p>
 
 <dl class="method">
 <dt id="schnell.mapping.MapCalculator.get_N_ell">
-<code class="descname">get_N_ell</code><span class="sig-paren">(</span><em>t</em>, <em>f</em>, <em>nside</em>, <em>is_fspacing_log=False</em>, <em>no_autos=False</em>, <em>deltaOmega_norm=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/mapping.html#MapCalculator.get_N_ell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.mapping.MapCalculator.get_N_ell" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_N_ell</code><span class="sig-paren">(</span><em>t</em>, <em>f</em>, <em>nside</em>, <em>is_fspacing_log=False</em>, <em>no_autos=False</em>, <em>deltaOmega_norm=True</em>, <em>proj=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/mapping.html#MapCalculator.get_N_ell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.mapping.MapCalculator.get_N_ell" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes <span class="math notranslate nohighlight">\(N_\ell\)</span> for this network.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -264,9 +273,18 @@ removed. If a 2D array, all autos and cross-
 correlations for which the array element is <cite>True</cite>
 will be removed.</li>
 <li><strong>deltaOmega_norm</strong> – if <cite>True</cite>, the quantity being mapped is
-<span class="math notranslate nohighlight">\(\delta\Omega = (\Omega/ar{\Omega}-1)/4\pi\)</span>.
+<span class="math notranslate nohighlight">\(\delta\Omega = (\Omega/\bar{\Omega}-1)/4\pi\)</span>.
 Otherwise the <span class="math notranslate nohighlight">\(4\pi\)</span> factor is omitted.
 (Default: <cite>True</cite>).</li>
+<li><strong>proj</strong> (dictionary or <cite>None</cite>) – if you want to project the data
+onto a set of linear combinations of the detectors, pass
+the linear coefficients of those here. <cite>proj</cite> should be
+a dictionary with two items: ‘vectors’ containing a 2D
+array (or a single vector) with the linear coefficients
+as rows and ‘deproj’. If ‘deproj’ is <cite>True</cite>, then those
+linear combinations will actually be projeted out. If
+<cite>proj</cite> is <cite>None</cite>, then no projection or de-projection
+will happen.</li>
 </ul>
 </td>
 </tr>
@@ -287,7 +305,7 @@ Otherwise the <span class="math notranslate nohighlight">\(4\pi\)</span> factor 
 
 <dl class="method">
 <dt id="schnell.mapping.MapCalculator.get_Ninv_t">
-<code class="descname">get_Ninv_t</code><span class="sig-paren">(</span><em>t</em>, <em>f</em>, <em>nside</em>, <em>is_fspacing_log=False</em>, <em>no_autos=False</em>, <em>deltaOmega_norm=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/mapping.html#MapCalculator.get_Ninv_t"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.mapping.MapCalculator.get_Ninv_t" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_Ninv_t</code><span class="sig-paren">(</span><em>t</em>, <em>f</em>, <em>nside</em>, <em>is_fspacing_log=False</em>, <em>no_autos=False</em>, <em>deltaOmega_norm=True</em>, <em>proj=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/mapping.html#MapCalculator.get_Ninv_t"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.mapping.MapCalculator.get_Ninv_t" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes inverse noise variance map for a set of
 timeframes integrated over frequency.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -310,9 +328,18 @@ removed. If a 2D array, all autos and cross-
 correlations for which the array element is <cite>True</cite>
 will be removed.</li>
 <li><strong>deltaOmega_norm</strong> – if <cite>True</cite>, the quantity being mapped is
-<span class="math notranslate nohighlight">\(\delta\Omega = (\Omega/ar{\Omega}-1)/4\pi\)</span>.
+<span class="math notranslate nohighlight">\(\delta\Omega = (\Omega/\bar{\Omega}-1)/4\pi\)</span>.
 Otherwise the <span class="math notranslate nohighlight">\(4\pi\)</span> factor is omitted.
 (Default: <cite>True</cite>).</li>
+<li><strong>proj</strong> (dictionary or <cite>None</cite>) – if you want to project the data
+onto a set of linear combinations of the detectors, pass
+the linear coefficients of those here. <cite>proj</cite> should be
+a dictionary with two items: ‘vectors’ containing a 2D
+array (or a single vector) with the linear coefficients
+as rows and ‘deproj’. If ‘deproj’ is <cite>True</cite>, then those
+linear combinations will actually be projeted out. If
+<cite>proj</cite> is <cite>None</cite>, then no projection or de-projection
+will happen.</li>
 </ul>
 </td>
 </tr>
@@ -360,7 +387,7 @@ only the <span class="math notranslate nohighlight">\(\gamma\)</span> overlap fu
 
 <dl class="method">
 <dt id="schnell.mapping.MapCalculator.get_dsigm2_dnu_t">
-<code class="descname">get_dsigm2_dnu_t</code><span class="sig-paren">(</span><em>t</em>, <em>f</em>, <em>nside</em>, <em>no_autos=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/mapping.html#MapCalculator.get_dsigm2_dnu_t"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.mapping.MapCalculator.get_dsigm2_dnu_t" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_dsigm2_dnu_t</code><span class="sig-paren">(</span><em>t</em>, <em>f</em>, <em>nside</em>, <em>no_autos=False</em>, <em>proj=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/mapping.html#MapCalculator.get_dsigm2_dnu_t"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.mapping.MapCalculator.get_dsigm2_dnu_t" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes <span class="math notranslate nohighlight">\(d\sigma^{-2}/df\,dt\)</span> for a set
 of frequencies and times.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -380,6 +407,15 @@ for which the array element is <cite>True</cite> will be
 removed. If a 2D array, all autos and cross-
 correlations for which the array element is <cite>True</cite>
 will be removed.</li>
+<li><strong>proj</strong> (dictionary or <cite>None</cite>) – if you want to project the data
+onto a set of linear combinations of the detectors, pass
+the linear coefficients of those here. <cite>proj</cite> should be
+a dictionary with two items: ‘vectors’ containing a 2D
+array (or a single vector) with the linear coefficients
+as rows and ‘deproj’. If ‘deproj’ is <cite>True</cite>, then those
+linear combinations will actually be projeted out. If
+<cite>proj</cite> is <cite>None</cite>, then no projection or de-projection
+will happen.</li>
 </ul>
 </td>
 </tr>
@@ -395,7 +431,7 @@ will be removed.</li>
 
 <dl class="method">
 <dt id="schnell.mapping.MapCalculator.get_pi_curve">
-<code class="descname">get_pi_curve</code><span class="sig-paren">(</span><em>t, f, nside, is_fspacing_log=False, no_autos=False, beta_range=[-10, 10], nsigma=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/mapping.html#MapCalculator.get_pi_curve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.mapping.MapCalculator.get_pi_curve" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_pi_curve</code><span class="sig-paren">(</span><em>t, f, nside, is_fspacing_log=False, no_autos=False, beta_range=[-10, 10], nsigma=1, proj=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schnell/mapping.html#MapCalculator.get_pi_curve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schnell.mapping.MapCalculator.get_pi_curve" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the power-law-integrated (PI) sensitivity curve
 for this network (see arXiv:1310.5300).</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -424,6 +460,15 @@ will be removed.</li>
 <li><strong>beta_range</strong> – a list containing the range of power law indices
 for which the PI curve will be computed.</li>
 <li><strong>nsigma</strong> – S/N of the PI curve (default: 1-sigma).</li>
+<li><strong>proj</strong> (dictionary or <cite>None</cite>) – if you want to project the data
+onto a set of linear combinations of the detectors, pass
+the linear coefficients of those here. <cite>proj</cite> should be
+a dictionary with two items: ‘vectors’ containing a 2D
+array (or a single vector) with the linear coefficients
+as rows and ‘deproj’. If ‘deproj’ is <cite>True</cite>, then those
+linear combinations will actually be projeted out. If
+<cite>proj</cite> is <cite>None</cite>, then no projection or de-projection
+will happen.</li>
 </ul>
 </td>
 </tr>
