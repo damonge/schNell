@@ -9,7 +9,7 @@ rc('text', usetex=True)
 t_obs = 1
 f_ref = 63
 nside = 64
-rE = -0.2
+rE = 0.2
 
 obs_time = t_obs*365*24*3600.
 freqs = np.linspace(10., 1010., 101)
