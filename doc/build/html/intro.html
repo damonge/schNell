@@ -164,13 +164,15 @@
   <div class="section" id="overview">
 <h1>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h1>
 <p><cite>schNell</cite> is a very lightweight python module that can be used to compute basic map-level noise properties for generic networks of gravitational wave interferometers. This includes primarily the noise power spectrum  <span class="math notranslate nohighlight">\(N_{\ell}\)</span>, but also other things, such as antenna patterns, overlap functions, inverse variance maps etc.</p>
-<p><cite>schNell</cite> is composed of two main classes:</p>
+<a class="reference internal image-reference" href="_images/Nell.png"><img alt="_images/Nell.png" src="_images/Nell.png" style="width: 600px;" /></a>
+<p><cite>schNell</cite> is composed of three main classes:</p>
 <ul class="simple">
 <li><code class="xref py py-class docutils literal notranslate"><span class="pre">Detector</span></code>s. These contain information about each individual detector of the network (their positions, noise properties, orientation etc.).</li>
 <li><code class="xref py py-class docutils literal notranslate"><span class="pre">NoiseCorrelation</span></code>s. These describe the noise-level correlation between pairs of detectors.</li>
 <li><code class="xref py py-class docutils literal notranslate"><span class="pre">MapCalculator</span></code>s. These objects combine a list of <code class="xref py py-class docutils literal notranslate"><span class="pre">Detector</span></code>s into a network (potentially together with a <code class="xref py py-class docutils literal notranslate"><span class="pre">NoiseCorrelation</span></code> object) and compute the corresponding map-level noise properties arising from their correlations.</li>
 </ul>
-<p>A quick but thorough description of how these two classes can be used to compute different quantities can be found in <a class="reference external" href="https://github.com/damonge/schNell/blob/master/examples/Nell_example.ipynb">here</a>.</p>
+<p>A quick but thorough description of how these three classes can be used to compute different quantities can be found in <a class="reference external" href="https://github.com/damonge/schNell/blob/master/examples/Nell_example.ipynb">here</a>.</p>
+<a class="reference internal image-reference" href="_images/antenna.png"><img alt="_images/antenna.png" src="_images/antenna.png" style="width: 600px;" /></a>
 <div class="section" id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
 <p>Installing <cite>schNell</cite> should be as simple as typing:</p>
