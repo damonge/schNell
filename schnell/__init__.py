@@ -9,4 +9,4 @@ from .correlation import (  # noqa
 from .detector import (  # noqa
     Detector, GroundDetectorTriangle,
     GroundDetector, LISADetector)
-__version__ = '0.1.1'
+__version__ = '0.2.0'
