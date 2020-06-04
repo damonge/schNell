@@ -25,7 +25,9 @@ dets = {'Hanford':     snl.GroundDetector('Hanford',     46.4, -119.4, 171.8,
         'VIRGO':       snl.GroundDetector('Virgo',       43.6,   10.5, 116.5,
                                           'data/Virgo.txt'),
         'Kagra':       snl.GroundDetector('KAGRA',       36.3,  137.2, 225.0,
-                                          'data/KAGRA.txt')}
+                                          'data/KAGRA.txt'),
+        'Cosmic Explorer': snl.GroundDetector('Cosmic Explorer', 37.24804, -115.800155, 0.,
+                                              'data/CE1_strain.txt')}
 
 print("HLVK")
 detectors = [dets['Hanford'], dets['Livingstone'],
@@ -60,12 +62,26 @@ no_autos = [True, True, True, True, False, False, False]
 nl_HLVKE = mc_HLVKE.get_N_ell(obs_time, freqs, nside,
                               no_autos=no_autos)
 
+detectors = [dets['Cosmic Explorer']] + et
+corr = np.array([[1., 0., 0., 0.],
+                 [0., 1., rE, rE],
+                 [0., rE, 1., rE],
+                 [0., rE, rE, 1.]])
+mc_ETCE = snl.MapCalculator(detectors, f_pivot=f_ref,
+                            corr_matrix=corr)
+no_autos = [[True,  False, False, False],
+            [False, True,  True,  True],
+            [False, True,  True,  True],
+            [False, True,  True,  True]]
+nl_ETCE = mc_ETCE.get_N_ell(obs_time, freqs, nside,
+                            no_autos=no_autos)
 
 ls = np.arange(3*nside)
 plt.figure()
 plt.plot(ls, (ls+0.5)*nl_HLVK, 'k:', label='LIGO + Virgo + KAGRA')
 plt.plot(ls, (ls+0.5)*nl_HLVKEx, 'k-', label=' + ET (cross-only)')
 plt.plot(ls, (ls+0.5)*nl_HLVKE, 'k-.', label=' + ET (all)')
+plt.plot(ls, (ls+0.5)*nl_ETCE, 'k--', label='ET + CE (cross-only)')
 plt.loglog()
 plt.xlabel(r'$\ell$', fontsize=16)
 plt.ylabel(r'$(\ell+1/2)\,N_\ell$', fontsize=16)

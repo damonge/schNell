@@ -15,7 +15,9 @@ dets = [snl.GroundDetector('Hanford',     46.4, -119.4, 171.8,
         snl.GroundDetector('Virgo',       43.6,   10.5, 116.5,
                            'data/Virgo.txt'),
         snl.GroundDetector('KAGRA',       36.3,  137.2, 225.0,
-                           'data/KAGRA.txt')]
+                           'data/KAGRA.txt'),
+        snl.GroundDetector('Cosmic Explorer', 37.24804, -115.800155, 0.,
+                           'data/CE1_strain.txt')]
 et = snl.GroundDetectorTriangle(name='ET0', lat=40.1, lon=9.0,
                                 fname_psd='data/ET.txt', detector_id=0)
 
@@ -37,8 +39,9 @@ plt.savefig("psd_LIGO.pdf", bbox_inches='tight')
 freqsa = np.geomspace(6, 5000., 3072)
 freqsb = np.geomspace(1., 10010., 3072)
 plt.figure()
-plt.plot(freqsa, dets[0].psd(freqsa), 'k--', label='LIGO A+')
 plt.plot(freqsb, et.psd(freqsb), 'k-', label='ET-D')
+plt.plot(freqsb, dets[4].psd(freqsb), 'k--', label='CE-S1')
+plt.plot(freqsa, dets[0].psd(freqsa), 'k:', label='LIGO A+')
 plt.xlim([1.5, 1E4])
 plt.ylim([5E-50, 9E-42])
 plt.loglog()
