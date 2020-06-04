@@ -15,6 +15,11 @@ Documentation can be found on [readthedocs](https://schnell.readthedocs.io/en/la
 
 This example [notebook](https://github.com/damonge/schNell/blob/master/examples/Nell_example.ipynb) on github also showcases the main functionalities of the module.
 
+Check out the following videos showing the scanning patterns of different GW networks.
+- [LIGO instantaneous sensitivity](https://youtu.be/54WBdWgBO8k)
+- [LIGO cumulative sensitivity](https://youtu.be/ByrEqpIrQzY)
+- [LISA instantaneous sensitivity](https://youtu.be/8d6gEGlboz8)
+
 ## License and credits
 If you use schNell, we kindly ask you to cite its companion paper (link to appear here soon).
 
