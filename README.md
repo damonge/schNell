@@ -21,7 +21,7 @@ Check out the following videos showing the scanning patterns of different GW net
 - [LISA instantaneous sensitivity](https://youtu.be/8d6gEGlboz8)
 
 ## License and credits
-If you use schNell, we kindly ask you to cite its companion paper (link to appear here soon).
+If you use schNell, we kindly ask you to cite its [companion paper](https://arxiv.org/abs/2005.03001).
 
 The code is available under the [BSD 3-Clause](https://opensource.org/licenses/BSD-3-Clause) license.
 
