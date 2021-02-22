@@ -1,6 +1,7 @@
 import numpy as np
 
 
+
 class Detector(object):
     """ :class:`Detector` objects encode information about individual
     GW detectors. The most relevant quantities are:
@@ -364,7 +365,10 @@ class LISADetector(Detector):
             (default `False`).
         static (bool): if `True`, a static configuration corresponding
             to a perfect equilateral triangle in the x-y plane will
-            be assumed.
+            be assumed (default False).
+        include_GCN (bool): if `True`, include galactic confusion
+            noise in PSD computation (default False).
+        mission_duration (float): mission duration in years (default 4.).
     """
     trans_freq_earth = 2 * np.pi / (365 * 24 * 3600)
     R_AU = 1.496E11
@@ -373,7 +377,8 @@ class LISADetector(Detector):
     clight = 299792458.
 
     def __init__(self, detector_id, is_L5Gm=False,
-                 static=False):
+                 static=False, include_GCN=False,
+                 mission_duration=4.):
         self.i_d = detector_id % 3
         self.name = 'LISA_%d' % self.i_d
         self.get_transfer = self._get_transfer_LISA
@@ -384,6 +389,8 @@ class LISADetector(Detector):
             self.L = 2.5E9
             self.e = 0.00482419
         self.static = static
+        self.include_GCN = include_GCN
+        self.mission_duration = mission_duration
 
     def _get_transfer_LISA(self, u, f, nv):
         # Eq. 48 in astro-ph/0105374
@@ -441,6 +448,52 @@ class LISADetector(Detector):
 
         return Pn
 
+    def GCN(self, f):
+        """
+        Returns galactic confusion noise as a function of \
+        frequency. Uses eq 14 and Table 1 from \
+        arXiv:1803.01944.
+
+        Args:
+            f: array of frequencies (in Hz).
+
+        Returns:
+            array_like: array of GCN values in units of \
+                1/Hz.
+        """
+        if not self.include_GCN:
+            return np.zeros_like(f)
+        A = 9e-45
+        if self.mission_duration == 0.5:
+            alpha = 0.133
+            beta = 243
+            kappa = 482
+            gamma = 917
+            f_k = 0.00258
+        elif self.mission_duration == 1:
+            alpha = 0.171
+            beta = 292
+            kappa = 1020
+            gamma = 1680
+            f_k = 0.00215
+        elif self.mission_duration == 2:
+            alpha = 0.165
+            beta = 299
+            kappa = 611
+            gamma = 1340
+            f_k = 0.00173
+        elif self.mission_duration == 4:
+            alpha = 0.138
+            beta = -221
+            kappa = 521
+            gamma = 1680
+            f_k = 0.00113
+        else:
+            raise NotImplementedError("Mission duration {}\
+                not implemented".format(self.mission_duration))
+        return (A * f**(-7/3) * np.exp(-f**alpha + beta*f*np.sin(kappa*f))
+            * (1 + np.tanh(gamma * (f_k - f))))
+
     def psd(self, f):
         """ Returns noise PSD as a function of frequency.
         Uses Eq. 55 from arXiv:1908.00546.
@@ -452,7 +505,7 @@ class LISADetector(Detector):
             array_like: array of PSD values in units of \
                 1/Hz.
         """
-        return self.psd_A(f)
+        return self.psd_A(f) + self.GCN(f)
 
     def get_position(self, t):
         """ Returns a 2D array containing the 3D position of
