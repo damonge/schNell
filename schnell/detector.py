@@ -44,7 +44,7 @@ class Detector(object):
 
     def get_transfer(self, u, f, nv):
         """ Returns the detector transfer function as a
-        funciton of position, frequency and sky coordinates.
+        function of position, frequency and sky coordinates.
 
         Args:
             u: 2D array of size `[3, N_t]` containing the unit
