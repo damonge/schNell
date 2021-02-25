@@ -8,5 +8,5 @@ from .correlation import (  # noqa
     NoiseCorrelationLISA)
 from .detector import (  # noqa
     Detector, GroundDetectorTriangle,
-    GroundDetector, LISADetector)
+    GroundDetector, LISADetector, ALIADetector)
 __version__ = '0.2.0'
