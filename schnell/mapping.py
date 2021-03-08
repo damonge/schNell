@@ -49,7 +49,7 @@ class MapCalculator(object):
         else:
             self.rho = corr_matrix
 
-        if self.rho.ndet != self.rho.ndet: # problem?
+        if self.rho.ndet != self.ndet:
             raise ValueError("Your correlation matrix has the wrong "
                              "dimensions.")
 
