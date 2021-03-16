@@ -1,5 +1,6 @@
 import numpy as np
 from .detector import LISADetector
+from .space_detector import LISADetector2
 
 
 class NoiseCorrelationBase(object):
@@ -125,7 +126,7 @@ class NoiseCorrelationLISA(NoiseCorrelationFromFunctions):
     """
     def __init__(self, det):
         self.ndet = 3
-        if not isinstance(det, LISADetector):
+        if not (isinstance(det, LISADetector) or isinstance(det, LISADetector2)):
             raise ValueError("`det` must be of type LISADetector")
         self.psda = det.psd_A
         self.psdx = det.psd_X

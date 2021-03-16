@@ -3,3 +3,6 @@ __pycache__
 *.pdf
 *.txt
 *.fits
+build
+dist
+schnell.egg-info

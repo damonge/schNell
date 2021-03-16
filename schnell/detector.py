@@ -352,6 +352,297 @@ class GroundDetector(Detector):
                       self.cabp*self.st*o])
         return u, v
 
+class LISAlikeDetector(Detector):
+    """ :class:`LISAlikeDetector` is a mother class for LISA-like networks
+    (LISA, ALIA, etc.).
+    
+    It only serves as a superclass ; do not use it as such.
+
+    Main args:
+        detector_id: detector number (0, 1 or 2).
+        static (bool): if `True`, a static configuration corresponding
+            to a perfect equilateral triangle in the x-y plane will
+            be assumed (default False).
+        include_GCN (bool): if `True`, include galactic confusion
+            noise in PSD computation (default False).
+        mission_duration (float): mission duration in years (default 4.).
+    """
+    trans_freq_earth = 2 * np.pi / (365 * 24 * 3600)
+    R_AU = 1.496E11
+    kap = 0  # initial longitude
+    lam = 0  # initial orientation
+    clight = 299792458.
+
+    def __init__(self, detector_id,
+                 L, e,
+                 acc_noise, path_fluctuation,
+                 static=False, include_GCN=False,
+                 mission_duration=4.):
+        self.i_d = detector_id % 3
+        self.name = '%d' % self.i_d
+        self.L = L
+        self.e = e
+        self.static = static
+        self.include_GCN = include_GCN
+        self.mission_duration = mission_duration
+        self.acc_noise = acc_noise
+        self.path_fluctuation = path_fluctuation
+
+    def psd_A(self, f):
+        """ Returns auto-noise PSD as a function of frequency.
+        Uses Eq. 55 from arXiv:1908.00546.
+
+        Args:
+            f: array of frequencies (in Hz).
+
+        Returns:
+            array_like: array of PSD values in units of \
+                1/Hz.
+        """
+        fstar = self.clight / (2 * np.pi * self.L)
+        Poms = (self.path_fluctuation)**2
+        Pacc = (self.acc_noise)**2 * (1 + (4E-4/f)**2)/(2*np.pi*f)**4
+        Pn = 4*(Poms+2*(1+np.cos(f/fstar)**2)*Pacc) / self.L**2
+
+        return Pn
+
+    def psd_X(self, f):
+        """ Returns cross-noise PSD as a function of frequency.
+        Uses Eq. 56 from arXiv:1908.00546.
+
+        Args:
+            f: array of frequencies (in Hz).
+
+        Returns:
+            array_like: array of PSD values in units of \
+                1/Hz.
+        """
+        # Equation 56 from 1908.00546
+        fstar = self.clight / (2 * np.pi * self.L)
+        Poms = (self.path_fluctuation)**2
+        Pacc = (self.acc_noise)**2 * (1 + (4E-4/f)**2)/(2*np.pi*f)**4
+        Pn = - (2*Poms+8*Pacc) * np.cos(f/fstar) / self.L**2
+
+        return Pn
+
+    def GCN(self, f):
+        """ Returns galactic confusion noise as a function \
+        of frequency. Uses eq 14 and Table 1 from \
+        arXiv:1803.01944.
+
+        Args:
+            f: array of frequencies (in Hz).
+
+        Returns:
+            array_like: array of GCN values in units of \
+                1/Hz.
+        """
+        if not self.include_GCN:
+            return np.zeros_like(f)
+        A = 9e-45
+        if self.mission_duration == 0.5:
+            alpha = 0.133
+            beta = 243
+            kappa = 482
+            gamma = 917
+            f_k = 0.00258
+        elif self.mission_duration == 1:
+            alpha = 0.171
+            beta = 292
+            kappa = 1020
+            gamma = 1680
+            f_k = 0.00215
+        elif self.mission_duration == 2:
+            alpha = 0.165
+            beta = 299
+            kappa = 611
+            gamma = 1340
+            f_k = 0.00173
+        elif self.mission_duration == 4:
+            alpha = 0.138
+            beta = -221
+            kappa = 521
+            gamma = 1680
+            f_k = 0.00113
+        else:
+            raise NotImplementedError("Mission duration {}\
+                not implemented".format(self.mission_duration))
+        return (A * f**(-7/3) * np.exp(-f**alpha + beta*f*np.sin(kappa*f))
+            * (1 + np.tanh(gamma * (f_k - f))))
+
+    def psd(self, f):
+        """ Returns noise PSD as a function of frequency.
+        Uses Eq. 55 from arXiv:1908.00546.
+
+        Args:
+            f: array of frequencies (in Hz).
+
+        Returns:
+            array_like: array of PSD values in units of \
+                1/Hz.
+        """
+        return self.psd_A(f) + self.GCN(f)
+
+    def response(self, f):
+        """ Returns response function of given frequency.
+        Uses eq 32 from arXiv:gr-qc/9909080
+        Args:
+            f: array of frequencies (in Hz).
+
+        Returns:
+            array_like: array of PSD values in units of \
+                1/Hz.
+        """
+        def to_integrate(eps, x, cosx, sinx):
+            def to_int2(theta1, eps, x, cosx, sinx):
+                def eta(x, mu1, mu2, cosx, sinx):
+                    return (mu1*mu2*(cosx-np.cos(x*mu1))
+                        * (cosx-np.cos(x*mu2))
+                        + (sinx-mu1*np.sin(x*mu1))
+                        * (sinx-mu2*np.sin(x*mu2)))
+                
+                mu1 = np.cos(theta1)
+                mu2 = mu1/2 + np.sqrt(3)/2 * np.sin(theta1) * np.cos(eps)
+                sina = np.sqrt(3)/2 * np.sin(eps) / np.sqrt(1- mu2**2)
+                return np.sin(theta1)*(1 - 2*sina**2) * eta(x,mu1,mu2,cosx, sinx)
+            
+            return integr.quad(to_int2, 0, np.pi, args=(eps, x, cosx, sinx))[0]
+        
+        x = 2 * np.pi * self.L * f / self.clight #omega tau in eq
+        cosx, sinx = np.cos(x), np.sin(x)
+
+        term1 = (1+cosx**2) * (1/3 - 2/(x**2))
+        term2 = sinx**2 + 4*cosx*sinx/(x**3)
+        term3 = 0
+        if np.size(f)==1:
+            term3 = - integr.quad(to_integrate, 0, np.pi,
+                args=(x, cosx, sinx))[0]/(2*np.pi)
+        else:
+            term3 = np.zeros_like(x)
+            for i in range(len(x)):
+                term3[i] = - integr.quad(to_integrate, 0, np.pi,
+                    args=(x[i], cosx[i], sinx[i]))[0]/(2*np.pi)
+
+        return 0.5 * (term1 + term2 + term3) / x**2
+
+    def sensitivity(self, f, full_compute=False):
+        """ Returns power spectral sensitivity as a function \
+            of frequency.
+            Uses eq 13 from arXiv:1803.01944
+            Args:
+                f: array of frequencies (in Hz).
+                full_compute (bool): if True, the response \
+                    function will be computed. Else, it will \
+                    be approximated to second order (default False).
+
+            Returns:
+                array_like: array of sensitivity values in Hz-1\
+        """
+        fstar = self.clight / (2 * np.pi * self.L)
+        response = 3 / 10 / (1 + 0.6* (f/fstar)**2)
+        if full_compute:
+            return self.psd(f) / self.response(f)
+        return self.psd(f) / response
+
+    def charac_strain(self, f, full_compute=False):
+        """ Returns dimensionless characteristic strain as a \
+            function of frequency.
+            Args:
+                f: array of frequencies (in Hz).
+                full_compute (bool): if True, the response \
+                    function will be computed. Else, it will \
+                    be approximated to second order (default False).
+
+            Returns:
+                array_like: array of dimensionless strain\
+        """
+        return np.sqrt(f * self.sensitivity(f, full_compute=full_compute))
+
+    def get_position(self, t):
+        """ Returns a 2D array containing the 3D position of
+        the detector at a series of times. The output array
+        has shape [3, N_t], where N_t is the size of `t`.
+
+        .. note:: The spacecraft orbits are calculated using Eq. 1
+                  of gr-qc/0311069.
+
+        Args:
+            t: time of observation (in seconds).
+
+        Returns:
+            array_like: detector position (in m) as a function \
+                of time.
+        """
+        return self._pos_single(t, self.i_d)
+
+    def _pos_all(self, t):
+        return np.array([self._pos_single(t, i)
+                         for i in range(3)])
+
+    def _pos_single(self, t, n):
+        if self.static:
+            if np.ndim(t) == 0:
+                ll = self.L
+                z = 0
+            else:
+                ll = self.L * np.ones_like(t)
+                z = np.zeros_like(t)
+            if n % 3 == 0:
+                return np.array([z, z, z])
+            elif n % 3 == 1:
+                return np.array([ll*1/2,
+                                 ll*np.sqrt(3)/2,
+                                 z])
+            elif n % 3 == 2:
+                return np.array([-ll*1/2,
+                                 ll*np.sqrt(3)/2,
+                                 z])
+        else:
+            # Equation 1 from gr-qc/0311069
+            a = self.trans_freq_earth * t + self.kap
+            b = 2 * np.pi * n / 3. + self.lam
+            e = self.e
+            e2 = e*e
+            x = np.cos(a) + \
+                0.5 * e * (np.cos(2*a-b) - 3*np.cos(b)) + \
+                0.125 * e2 * (3*np.cos(3*a-2*b) -
+                              10*np.cos(a) -
+                              5*np.cos(a-2*b))
+            y = np.sin(a) + \
+                0.5 * e * (np.sin(2*a-b) - 3*np.sin(b)) + \
+                0.125 * e2 * (3*np.sin(3*a-2*b) -
+                              10*np.sin(a) +
+                              5*np.sin(a-2*b))
+            z = np.sqrt(3.) * (-e * np.cos(a-b) +
+                               e2 * (1 + 2*np.sin(a-b)**2))
+            return self.R_AU * np.array([x, y, z])
+
+    def get_u_v(self, t):
+        """ Returns unit vectors in the directions of the
+        detector arms as a function of time.
+
+        Args:
+            t: array of size `N_t` containing different
+                observing times (in s).
+
+        Returns:
+            array_like: 2 arrays of shape `[3, N_t]` \
+                containing the arm unit vectors.
+        """
+        t_use = np.atleast_1d(t)
+        pos = self._pos_all(t_use)
+        np0 = (self.i_d + 0) % 3
+        np1 = (self.i_d + 1) % 3
+        np2 = (self.i_d + 2) % 3
+        uv = pos[np1] - pos[np0]
+        ul = np.sqrt(np.sum(uv**2, axis=0))
+        u = uv[:, :] / ul[None, :]
+        vv = pos[np2] - pos[np0]
+        vl = np.sqrt(np.sum(vv**2, axis=0))
+        v = vv[:, :] / vl[None, :]
+
+        return u, v
+
 class LISADetector(Detector):
     """ :class:`LISADetector` objects can be used to describe
     the properties of the LISA network.
@@ -423,7 +714,7 @@ class LISADetector(Detector):
         fstar = self.clight / (2 * np.pi * self.L)
         Poms = (1.5E-11)**2
         Pacc = (3E-15)**2 * (1 + (4E-4/f)**2)/(2*np.pi*f)**4
-        Pn = (Poms+2*(1+np.cos(f/fstar)**2)*Pacc) / self.L**2
+        Pn = 4*(Poms+2*(1+np.cos(f/fstar)**2)*Pacc) / self.L**2
 
         return Pn
 
@@ -683,7 +974,7 @@ class ALIADetector(Detector):
     lam = 0  # initial orientation
     clight = 299792458.
 
-    def __init__(self, detector_id, is_L5Gm=False,
+    def __init__(self, detector_id,
                  static=False, include_GCN=False,
                  mission_duration=4.):
         self.i_d = detector_id % 3
@@ -726,9 +1017,9 @@ class ALIADetector(Detector):
         """
         # Equation 55 from 1908.00546
         fstar = self.clight / (2 * np.pi * self.L)
-        Poms = (1.5E-11)**2
-        Pacc =  4 * (3E-16)**2 * (1 + (4E-4/f)**2)/(2*np.pi*f)**4
-        Pn = (Poms+2*(1+np.cos(f/fstar)**2)*Pacc) / self.L**2
+        Poms = (1.5E-14)**2
+        Pacc =  (3E-16)**2 * (1 + (4E-4/f)**2)/(2*np.pi*f)**4
+        Pn = 4 * (Poms+2*(1+np.cos(f/fstar)**2)*Pacc) / self.L**2
 
         return Pn
 
@@ -745,8 +1036,8 @@ class ALIADetector(Detector):
         """
         # Equation 56 from 1908.00546
         fstar = self.clight / (2 * np.pi * self.L)
-        Poms = (1.5E-11)**2
-        Pacc = (3E-15)**2 * (1 + (4E-4/f)**2)/(2*np.pi*f)**4
+        Poms = (1.5E-14)**2
+        Pacc = (3E-16)**2 * (1 + (4E-4/f)**2)/(2*np.pi*f)**4
         Pn = - (2*Poms+8*Pacc) * np.cos(f/fstar) / self.L**2
 
         return Pn
