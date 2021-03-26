@@ -1,6 +1,6 @@
 import numpy as np
-from .detector import LISADetector
-from .space_detector import LISADetector2
+from .detector import LISADetector, LISAlikeDetector
+from .space_detector import LISADetector2, ALIADetector2, LISAandALIADetector
 
 
 class NoiseCorrelationBase(object):
@@ -130,3 +130,65 @@ class NoiseCorrelationLISA(NoiseCorrelationFromFunctions):
             raise ValueError("`det` must be of type LISADetector")
         self.psda = det.psd_A
         self.psdx = det.psd_X
+
+
+class NoiseCorrelationLISAlike(NoiseCorrelationFromFunctions):
+    """ This implements the noise correlation
+    matrix for LISA-like detectors.
+
+    Args:
+        det: :class:`~schnell.LISAlikeDetector` object.
+    """
+    def __init__(self, det):
+        self.ndet = 3
+        if not (isinstance(det, LISAlikeDetector)):
+            raise ValueError("`det` must be of type LISAlikeDetector")
+        self.psda = det.psd_A
+        self.psdx = det.psd_X
+
+class NoiseCorrelationLISALIA(NoiseCorrelationBase):
+    """ This implements the correlation matrix for LISA and ALIA combined.
+
+    Args:
+        det: :class:`~schnell.LISAandALIADetector` object.
+    """
+    def __init__(self, det):
+        self.ndet = 6
+        LISAdet = LISADetector2(0, is_L5Gm=det.is_L5Gm,
+                                static=det.detector.static,
+                                include_GCN=det.detector.include_GCN,
+                                mission_duration=det.detector.mission_duration)
+        ALIAdet = ALIADetector2(0, static=det.detector.static,
+                                include_GCN=det.detector.include_GCN,
+                                mission_duration=det.detector.mission_duration)
+        self.psdaL = LISAdet.psd_A
+        self.psdxL = LISAdet.psd_X
+        self.psdaA = ALIAdet.psd_A
+        self.psdxA = ALIAdet.psd_X
+
+    def _rhoL(self, f):
+        a = self.psdaL(f)
+        x = self.psdxL(f)
+        return x/a
+
+    def _rhoA(self, f):
+        a = self.psdaL(f)
+        x = self.psdxL(f)
+        return x/a
+
+    def _get_corrmat(self, f):
+        f_use = np.atleast_1d(f)
+        rL = self._rhoL(f_use)
+        rA = self._rhoA(f_use)
+        mat = np.zeros([len(f_use), 6, 6])
+        for i in range(3):
+            mat[:, i, i] = 1
+            for j in range(i+1, 3):
+                mat[:, i, j] = rL
+                mat[:, j, i] = rL
+        for i in range(3, 6):
+            mat[:, i, i] = 1
+            for j in range(i+1, 6):
+                mat[:, i, j] = rA
+                mat[:, j, i] = rA
+        return mat

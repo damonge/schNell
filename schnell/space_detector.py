@@ -107,8 +107,10 @@ class LISAandALIADetector(Detector):
     """
     trans_freq_earth = 2 * np.pi / (365 * 24 * 3600)
     R_AU = 1.496E11
-    kap = 0  # initial longitude
+    kap = 0  # initial longitude of LISA ; ALIA is behind
     lam = 0  # initial orientation
+    separation = 0.7 # distance between LISA and ALIA, in AU
+    # We suppose that the Earth's motion is circular (?)
     clight = 299792458.
 
     def __init__(self, detector_id, is_L5Gm=False,
@@ -117,15 +119,18 @@ class LISAandALIADetector(Detector):
         if detector_id in [0, 1, 2]:
             self.detector = LISADetector2(detector_id, is_L5Gm, static,
                                           include_GCN, mission_duration)
-            self.i_d = detector_id
-            self.name = 'LISA_%d' % self.i_d
+            self.name = 'LISA_%d' % detector_id
             self.get_transfer = self.detector._get_transfer_LISA
+            self.detector.kap = self.kap
         elif detector_id in [3, 4, 5]:
             self.detector = ALIADetector2(detector_id-3, static, include_GCN, mission_duration)
-            self.name = 'ALIA_%d' % self.i_d
+            self.name = 'ALIA_%d' % detector_id
             self.get_transfer = self.detector._get_transfer_ALIA
+            self.detector.kap = self.kap - 2 * np.arcsin(self.separation / 2)
         else:
             raise RuntimeError('Detector i_d must be between 0 and 5')
+        self.is_L5Gm = is_L5Gm
+        self.detector.lam = self.lam
         self.i_d = detector_id
         self.L = self.detector.L
         self.e = self.detector.e
@@ -148,16 +153,44 @@ class LISAandALIADetector(Detector):
     def sensitivity(self, f):
         return self.detector.sensitivity(f)
     
+    def get_position(self, t):
+        """ Returns a 2D array containing the 3D position of
+        the detector at a series of times. The output array
+        has shape [3, N_t], where N_t is the size of `t`.
+
+        .. note:: The spacecraft orbits are calculated using Eq. 1
+                  of gr-qc/0311069.
+
+        Args:
+            t: time of observation (in seconds).
+
+        Returns:
+            array_like: detector position (in m) as a function \
+                of time.
+        """
+        return self._pos_single(t, self.i_d)
+    
     def _pos_all(self, t):
-        return
+        return np.array([self._pos_single(t, i)
+                         for i in range(6)])
     
     def _pos_single(self, t, n):
         if n in [0, 1, 2]:
-            return LISADetector2(0)._pos_single(t, n)
+            detect = LISADetector2(0, is_L5Gm=self.is_L5Gm,
+                                     static=self.detector.static,
+                                     include_GCN=self.detector.include_GCN,
+                                     mission_duration=self.detector.mission_duration)
+            detect.kap = self.kap
+            detect.lam = self.lam
         elif n in [3, 4, 5]:
-            return ALIADetector2(0)._pos_single(t, n)
+            detect = ALIADetector2(0, static=self.detector.static,
+                                   include_GCN=self.detector.include_GCN,
+                                   mission_duration=self.detector.mission_duration)
+            detect.kap = self.kap - 2 * np.arcsin(self.separation / 2)
+            detect.lam = self.lam
         else:
             raise RuntimeError('Detector id must be between 0 and 5')
-    
+        return detect._pos_single(t, n)
+
     def get_u_v(self, t):
         return self.detector.get_u_v(t)
