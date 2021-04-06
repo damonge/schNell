@@ -109,13 +109,15 @@ class LISAandALIADetector(Detector):
     R_AU = 1.496E11
     kap = 0  # initial longitude of LISA ; ALIA is behind
     lam = 0  # initial orientation
-    separation = 0.7 # distance between LISA and ALIA, in AU
-    # We suppose that the Earth's motion is circular (?)
     clight = 299792458.
 
     def __init__(self, detector_id, is_L5Gm=False,
                  static=False, include_GCN=False,
-                 mission_duration=4.):
+                 mission_duration=4., separation=0.7):
+        self.separation = separation # distance between LISA and ALIA, in AU
+        # We suppose that the Earth's motion is circular (?)
+        self.ang_separation = 2 * np.arcsin(self.separation / 2)
+
         if detector_id in [0, 1, 2]:
             self.detector = LISADetector2(detector_id, is_L5Gm, static,
                                           include_GCN, mission_duration)
@@ -126,7 +128,7 @@ class LISAandALIADetector(Detector):
             self.detector = ALIADetector2(detector_id-3, static, include_GCN, mission_duration)
             self.name = 'ALIA_%d' % detector_id
             self.get_transfer = self.detector._get_transfer_ALIA
-            self.detector.kap = self.kap - 2 * np.arcsin(self.separation / 2)
+            self.detector.kap = self.kap - self.ang_separation
         else:
             raise RuntimeError('Detector i_d must be between 0 and 5')
         self.is_L5Gm = is_L5Gm
@@ -186,7 +188,7 @@ class LISAandALIADetector(Detector):
             detect = ALIADetector2(0, static=self.detector.static,
                                    include_GCN=self.detector.include_GCN,
                                    mission_duration=self.detector.mission_duration)
-            detect.kap = self.kap - 2 * np.arcsin(self.separation / 2)
+            detect.kap = self.kap - self.ang_separation
             detect.lam = self.lam
         else:
             raise RuntimeError('Detector id must be between 0 and 5')
