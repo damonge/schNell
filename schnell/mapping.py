@@ -407,6 +407,65 @@ class MapCalculator(object):
         pi = np.max(oms, axis=0)
         return pi
 
+    def get_monopole_curve(self, t, f, nside, no_autos=False,
+                        proj=None, compute_FED=False):
+        """ Computes the monopole for this network (eq before eq. 44 of
+        the companion paper). By default, the sensitivity monopole is
+        computed; the monopole for fractional energy density can also be
+        computed.
+
+        Args:
+            t (float or array_like): `N_t` time values (in s). If a single
+                number is passed, then the "rigid network" approximation
+                is used, and this time is interpreted as the total
+                observing time. Otherwise, an integral over time is
+                performed.
+            f: array of `N_f` frequency values (in Hz). This will be the
+                frequencies at which the monopole will be computed.
+            nside: HEALPix resolution parameter. Used to create
+                maps of the antenna pattern and computes its sky
+                average.
+            no_autos (bool, or array_like): if a single `True`
+                value, all detector auto-correlations will be
+                removed. If a 1D array, only the auto-correlations
+                for which the array element is `True` will be
+                removed. If a 2D array, all autos and cross-
+                correlations for which the array element is `True`
+                will be removed.
+            proj (dictionary or `None`): if you want to project the data
+                onto a set of linear combinations of the detectors, pass
+                the linear coefficients of those here. `proj` should be
+                a dictionary with two items: 'vectors' containing a 2D
+                array (or a single vector) with the linear coefficients
+                as rows and 'deproj'. If 'deproj' is `True`, then those
+                linear combinations will actually be projeted out. If
+                `proj` is `None`, then no projection or de-projection
+                will happen.
+            compute_FED (bool): if True, the monopole will be for the
+                fractional energy density. if False, it will be the
+                intensity monopole. Default is False.
+
+        Returns:
+            array_like: array of size `N_f`.
+        """
+        t_use = np.atleast_1d(t)
+        f_use = f
+        inv_dsig2_dnu_dt = self.get_dsigm2_dnu_t(t_use, f_use, nside,
+                                                 no_autos=no_autos,
+                                                 proj=proj)
+        # Sum over time
+        if len(t_use) == 1:
+            inv_dsig2_dnu = np.squeeze(inv_dsig2_dnu_dt * t)
+        else:
+            dt = np.mean(np.diff(t_use))
+            inv_dsig2_dnu = np.sum(inv_dsig2_dnu_dt, axis=0) * dt
+        if not compute_FED:
+            e_f = (f_use / self.f_pivot) ** self.specin_omega
+            H0 = self.h * 3.24077929E-18 # H0 in km/s/Mpc in Hz
+            prefac = (4 * np.pi**2 * f**3 * e_f / (3 * H0**2)) **(-2)
+            return prefac / np.sqrt(inv_dsig2_dnu)
+        return 1 / np.sqrt(inv_dsig2_dnu)  # what about dnu?
+
     def get_dsigm2_dnu_t(self, t, f, nside, no_autos=False,
                          proj=None):
         """ Computes :math:`d\\sigma^{-2}/df\\,dt` for a set
