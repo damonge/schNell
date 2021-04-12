@@ -192,3 +192,51 @@ class NoiseCorrelationLISALIA(NoiseCorrelationBase):
                 mat[:, i, j] = rA
                 mat[:, j, i] = rA
         return mat
+
+class NoiseCorrelationTwoLISA(NoiseCorrelationBase):
+    """ This implements the correlation matrix for LISA and ALIA combined.
+
+    Args:
+        det: :class:`~schnell.LISAandALIADetector` object.
+    """
+    def __init__(self, det):
+        self.ndet = 6
+        LISA1det = LISADetector2(0, is_L5Gm=det.is_L5Gm,
+                                static=det.detector.static,
+                                include_GCN=det.detector.include_GCN,
+                                mission_duration=det.detector.mission_duration)
+        LISA2det = LISADetector2(0, is_L5Gm=det.is_L5Gm,
+                                static=det.detector.static,
+                                include_GCN=det.detector.include_GCN,
+                                mission_duration=det.detector.mission_duration)
+        self.psdaL1 = LISA1det.psd_A
+        self.psdxL1 = LISA1det.psd_X
+        self.psdaL2 = LISA2det.psd_A
+        self.psdxL2 = LISA2det.psd_X
+
+    def _rhoL1(self, f):
+        a = self.psdaL1(f)
+        x = self.psdxL1(f)
+        return x/a
+
+    def _rhoL2(self, f):
+        a = self.psdaL2(f)
+        x = self.psdxL2(f)
+        return x/a
+
+    def _get_corrmat(self, f):
+        f_use = np.atleast_1d(f)
+        rL1 = self._rhoL1(f_use)
+        rL2 = self._rhoL2(f_use)
+        mat = np.zeros([len(f_use), 6, 6])
+        for i in range(3):
+            mat[:, i, i] = 1
+            for j in range(i+1, 3):
+                mat[:, i, j] = rL1
+                mat[:, j, i] = rL1
+        for i in range(3, 6):
+            mat[:, i, i] = 1
+            for j in range(i+1, 6):
+                mat[:, i, j] = rL2
+                mat[:, j, i] = rL2
+        return mat
