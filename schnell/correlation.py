@@ -172,8 +172,8 @@ class NoiseCorrelationLISALIA(NoiseCorrelationBase):
         return x/a
 
     def _rhoA(self, f):
-        a = self.psdaL(f)
-        x = self.psdxL(f)
+        a = self.psdaA(f)
+        x = self.psdxA(f)
         return x/a
 
     def _get_corrmat(self, f):
