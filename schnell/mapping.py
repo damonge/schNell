@@ -6,6 +6,8 @@ from .correlation import (
     NoiseCorrelationConstantIdentity,
     NoiseCorrelationConstantR)
 
+from concurrent.futures import ProcessPoolExecutor as Pool
+from itertools import product
 
 class MapCalculator(object):
     """ Map calculators compute map-level quantities for a given
@@ -688,6 +690,59 @@ class MapCalculator(object):
         aalms_i = np.zeros([self.ndet, self.ndet,
                             nt, nf, nalm],
                            dtype=np.cdouble)
+        """
+        global _NOTUSE_aalm
+        def _NOTUSE_aalm(params1):
+            print("boop")
+            i1, i2, no_autos, t_use, f_use, ct, st, cp, sp, inc_baseline = params1
+            if no_autos[i1, i2] or i2 < i1:
+                return np.zeros((2, nt *nf, nalm))
+            antenna = self._get_antenna_ij(i1, i2, t_use, f_use,
+                                               ct, st, cp, sp,
+                                               inc_baseline=inc_baseline)
+
+            global _NOTUSE_tfint
+            def _NOTUSE_tfint(params2):
+                i_t, i_f, ant, i1, i2 = params2
+                a = ant[i_t, i_f, :]
+                alm_r = hp.map2alm(np.real(a))
+                alm_i = hp.map2alm(np.imag(a))
+                return alm_r, alm_i
+            tlist = range(nt)
+            flist = range(nf)
+            paramlist_2 = product(tlist, flist, [antenna], [i1], [i2])
+            with Pool() as localpool:
+                results = list(localpool.map(_NOTUSE_tfint, paramlist_2))
+            return np.array(results)
+            all_r, all_i = [], []
+            ###
+            for i_t in range(nt):
+                for i_f in range(nf):
+                    a = antenna[i_t, i_f, :]
+                    alm_r = hp.map2alm(np.real(a))
+                    alm_i = hp.map2alm(np.imag(a))
+                    all_r.append(alm_r)
+                    all_i.append(alm_i)
+            ###
+            print(f'{i1}, {i2} : done')
+            return np.array([all_r, all_i])
+        
+        
+        i1, i2 = range(self.ndet), range(self.ndet)
+        paramlist_1 = product(i1, i2, [no_autos], [t_use], [f_use],
+                        [ct], [st], [cp], [sp], [True])
+        with Pool() as pool:
+            aalms = np.array(list(pool.map(_NOTUSE_aalm, paramlist_1)))
+        print(len(aalms))
+        print(len(aalms[0]))
+        print(aalms_i.shape)
+        aalms_r = aalms[:,0].reshape(aalms_r.shape)
+        aalms_i = aalms[:,1].reshape(aalms_i.shape)
+        for i1 in range(self.ndet):
+            for i2 in range(i1):
+                aalms_r[i1, i2, :,:,:] = aalms_r[i2, i1, :,:,:]
+                aalms_i[i1, i2, :,:,:] = - aalms_i[i2, i1, :,:,:]
+        """
         for i1 in range(self.ndet):
             for i2 in range(i1, self.ndet):
                 if no_autos[i1, i2]:
@@ -705,10 +760,10 @@ class MapCalculator(object):
                         if i2 != i1:
                             aalms_r[i2, i1, i_t, i_f, :] = alm_r
                             aalms_i[i2, i1, i_t, i_f, :] = -alm_i
-
         if pmat is not None:
             aalms_r = np.einsum('ijmno,ki,lj', aalms_r, pmat, pmat)
             aalms_i = np.einsum('ijmno,ki,lj', aalms_i, pmat, pmat)
+        
 
         # Prefactors
         e_f = (f_use / self.f_pivot)**self.specin_omega / self.norm_pivot
@@ -728,6 +783,131 @@ class MapCalculator(object):
                             if no_autos[iB, iC]:
                                 continue
                             for iD in range(self.ndet):
+                                iS_CD = iS_f[i_f, iC, iD]
+                                gADr = aalms_r[iA, iD, i_t, i_f, :]
+                                gADi = aalms_i[iA, iD, i_t, i_f, :]
+                                if no_autos[iA, iD]:
+                                    continue
+                                clr = hp.alm2cl(gBCr, gADr)
+                                cli = hp.alm2cl(gBCi, gADi)
+                                gls[i_f, i_t, :] += iS_AB * iS_CD * (clr + cli)
+
+        gls = gls * prefac[:, None, None]
+        if np.ndim(f) == 0:
+            gls = np.squeeze(gls, axis=0)
+            if np.ndim(t) == 0:
+                gls = np.squeeze(gls, axis=0)
+        else:
+            if np.ndim(t) == 0:
+                gls = np.squeeze(gls, axis=1)
+        return gls
+
+
+
+
+
+    def get_N_ell_inv_part(self, t, f, nside, indices, is_fspacing_log=False,
+                  no_autos=False, deltaOmega_norm=True, proj=None):
+        """
+        Choose which parts of the sum to remove
+        """
+        t_use = np.atleast_1d(t)
+        f_use = np.atleast_1d(f)
+        if is_fspacing_log:
+            dlf = np.mean(np.diff(np.log(f)))
+            df = f * dlf
+        else:
+            df = np.mean(np.diff(f)) * np.ones(len(f))
+        gls = self.get_G_ell_part(t_use, f_use, nside, indices, no_autos=no_autos,
+                             deltaOmega_norm=deltaOmega_norm, proj=proj)
+        # Sum over frequencies
+        gls = np.sum(gls * df[:, None, None], axis=0)
+        # Sum over times
+        if len(t_use) == 1:
+            gls = np.squeeze(gls * t)
+        else:
+            dt = np.mean(np.diff(t_use))
+            gls = np.sum(gls, axis=0) * dt
+        return gls
+
+
+    def get_G_ell_part(self, t, f, nside, indices, no_autos=False, deltaOmega_norm=True,
+                  proj=None):
+        """
+        Choose which parts of the sum to reove
+        """
+        if np.ndim(no_autos) == 0:
+            no_autos = np.array([no_autos] * self.ndet)
+        else:
+            if len(no_autos) != self.ndet:
+                raise ValueError("No autos should have %d elements" %
+                                 self.ndet)
+        if np.ndim(no_autos) == 1:
+            no_autos = np.diag(no_autos)
+        no_autos = np.array(no_autos)
+
+        pmat = self._compute_projector(proj)
+
+        t_use = np.atleast_1d(t)
+        f_use = np.atleast_1d(f)
+
+        nf = len(f_use)
+        nt = len(t_use)
+        npix = hp.nside2npix(nside)
+        nalm = (3*nside*(3*nside+1))//2
+        nell = 3*nside
+        th, ph = hp.pix2ang(nside, np.arange(npix))
+        ct, st, cp, sp = self._precompute_skyvec(th, ph)
+
+        # Get S matrix:
+        iS_f = self._get_iS_f(f_use, pmat)
+
+        # Get antenna alms
+        aalms_r = np.zeros([self.ndet, self.ndet,
+                            nt, nf, nalm],
+                           dtype=np.cdouble)
+        aalms_i = np.zeros([self.ndet, self.ndet,
+                            nt, nf, nalm],
+                           dtype=np.cdouble)
+
+        for i1 in range(self.ndet):
+            for i2 in range(i1, self.ndet):
+                if no_autos[i1, i2]:
+                    continue
+                antenna = self._get_antenna_ij(i1, i2, t_use, f_use,
+                                               ct, st, cp, sp,
+                                               inc_baseline=True)
+                for i_t in range(nt):
+                    for i_f in range(nf):
+                        a = antenna[i_t, i_f, :]
+                        alm_r = hp.map2alm(np.real(a))
+                        alm_i = hp.map2alm(np.imag(a))
+                        aalms_r[i1, i2, i_t, i_f, :] = alm_r
+                        aalms_i[i1, i2, i_t, i_f, :] = alm_i
+                        if i2 != i1:
+                            aalms_r[i2, i1, i_t, i_f, :] = alm_r
+                            aalms_i[i2, i1, i_t, i_f, :] = -alm_i
+        if pmat is not None:
+            aalms_r = np.einsum('ijmno,ki,lj', aalms_r, pmat, pmat)
+            aalms_i = np.einsum('ijmno,ki,lj', aalms_i, pmat, pmat)
+        
+
+        # Prefactors
+        e_f = (f_use / self.f_pivot)**self.specin_omega / self.norm_pivot
+        prefac = 0.5 * (2 * e_f / 5)**2
+        if deltaOmega_norm:
+            prefac *= (4*np.pi)**2
+
+        gls = np.zeros([nf, nt, nell])
+        print(self.ndet)
+        for i_t in range(nt):
+            for i_f in range(nf):
+                for iA, iB, iC, iD in indices:
+                                iS_AB = iS_f[i_f, iA, iB]
+                                gBCr = aalms_r[iB, iC, i_t, i_f, :]
+                                gBCi = aalms_i[iB, iC, i_t, i_f, :]
+                                if no_autos[iB, iC]:
+                                    continue
                                 iS_CD = iS_f[i_f, iC, iD]
                                 gADr = aalms_r[iA, iD, i_t, i_f, :]
                                 gADi = aalms_i[iA, iD, i_t, i_f, :]

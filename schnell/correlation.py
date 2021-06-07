@@ -146,6 +146,7 @@ class NoiseCorrelationLISAlike(NoiseCorrelationFromFunctions):
         self.psda = det.psd_A
         self.psdx = det.psd_X
 
+
 class NoiseCorrelationLISALIA(NoiseCorrelationBase):
     """ This implements the correlation matrix for LISA and ALIA combined.
 
@@ -193,6 +194,7 @@ class NoiseCorrelationLISALIA(NoiseCorrelationBase):
                 mat[:, j, i] = rA
         return mat
 
+
 class NoiseCorrelationTwoLISA(NoiseCorrelationBase):
     """ This implements the correlation matrix for LISA and ALIA combined.
 
@@ -239,4 +241,32 @@ class NoiseCorrelationTwoLISA(NoiseCorrelationBase):
             for j in range(i+1, 6):
                 mat[:, i, j] = rL2
                 mat[:, j, i] = rL2
+        return mat
+
+class NoiseCorrelationMultipleLISA(NoiseCorrelationBase):
+    def __init__(self, det):
+            self.ndet = det.nb_detectors * 3
+            LISAdet = LISADetector2(0, is_L5Gm=det.is_L5Gm,
+                                static=det.detector.static,
+                                include_GCN=det.detector.include_GCN,
+                                mission_duration=det.detector.mission_duration)
+            self.psdaL = LISAdet.psd_A
+            self.psdxL = LISAdet.psd_X
+            
+    def _rhoL(self, f):
+        a = self.psdaL(f)
+        x = self.psdxL(f)
+        return x/a
+    
+    def _get_corrmat(self, f):
+        f_use = np.atleast_1d(f)
+        rL = self._rhoL(f_use)
+        mat = np.zeros((len(f_use), self.ndet, self.ndet))
+        for detnb in range(self.ndet // 3):
+            offset = 3 * detnb
+            for i in range(3):
+                mat[:, offset+i, offset+i] = 1
+                for j in range(i+1, 3):
+                    mat[:, offset+i, offset+j] = rL
+                    mat[:, offset+j, offset+i] = rL
         return mat

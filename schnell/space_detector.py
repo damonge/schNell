@@ -54,7 +54,6 @@ class LISADetector2(LISAlikeDetector):
                   np.exp(1j*phase2)*sinc2)
         return tr
 
-
 class ALIADetector2(LISAlikeDetector):
     """ :class:`ALIADetector` objects can be used to describe
     the properties of the ALIA network.
@@ -197,7 +196,6 @@ class LISAandALIADetector(Detector):
     def get_u_v(self, t):
         return self.detector.get_u_v(t)
 
-
 class TwoLISADetector(Detector):
     """ :class:`TwoLISADetector objects can be used to describe 
     the combination of two LISA networks. id 0 to 2 is LISA 1;
@@ -284,7 +282,88 @@ class TwoLISADetector(Detector):
         else:
             raise RuntimeError('Detector id must be between 0 and 5')
         detect.lam = self.lam
-        return detect._pos_single(t, n)
+        return detect._pos_single(t, n%3)
+
+    def get_u_v(self, t):
+        return self.detector.get_u_v(t)
+
+class MultipleLISADetector(Detector):
+    """ :class:`MultipleLISADetector` objects can be used to describe 
+    the combination of multiple LISA networks at regular intervals in
+    the same orbit around the Sun. Each LISA network is described by
+    three successive ids : 0 to 2, 3 to 5...
+    """
+    trans_freq_earth = 2 * np.pi / (365 * 24 * 3600)
+    R_AU = 1.496E11
+    kap = 0  # initial longitude of LISA1 ; other LISAs are behind
+    lam = 0  # initial orientation
+    clight = 299792458.
+
+    def __init__(self, detector_id, nb_detectors, is_L5Gm=False,
+                 static=False, include_GCN=False,
+                 mission_duration=4.):
+        self.nb_detectors = nb_detectors
+        self.ang_separation = (detector_id // 3) * 2 * np.pi / nb_detectors
+        self.detector = LISADetector2(detector_id, is_L5Gm, static,
+                                    include_GCN, mission_duration)
+        self.name = 'LISA_%d' % detector_id
+        self.get_transfer = self.detector._get_transfer_LISA
+
+        self.detector.kap = self.kap - self.ang_separation
+
+        self.is_L5Gm = is_L5Gm
+        self.detector.lam = self.lam
+        self.i_d = detector_id
+        self.L = self.detector.L
+        self.e = self.detector.e
+    
+    def psd_A(self, f):
+        return self.detector.psd_A(f)
+    
+    def psd_X(self, f):
+        return self.detector.psd_X(f)
+    
+    def GCN(self, f):
+        return self.detector.GCN(f)
+    
+    def psd(self, f):
+        return self.detector.psd(f)
+    
+    def response(self, f):
+        return self.detector.response(f)
+    
+    def sensitivity(self, f):
+        return self.detector.sensitivity(f)
+    
+    def get_position(self, t):
+        """ Returns a 2D array containing the 3D position of
+        the detector at a series of times. The output array
+        has shape [3, N_t], where N_t is the size of `t`.
+
+        .. note:: The spacecraft orbits are calculated using Eq. 1
+                  of gr-qc/0311069.
+
+        Args:
+            t: time of observation (in seconds).
+
+        Returns:
+            array_like: detector position (in m) as a function \
+                of time.
+        """
+        return self._pos_single(t, self.i_d)
+    
+    def _pos_all(self, t):
+        return np.array([self._pos_single(t, i)
+                         for i in range(self.nb_detectors * 3)])
+    
+    def _pos_single(self, t, n):
+        detect = LISADetector2(0, is_L5Gm=self.is_L5Gm,
+                                    static=self.detector.static,
+                                    include_GCN=self.detector.include_GCN,
+                                    mission_duration=self.detector.mission_duration)
+        detect.kap = self.kap - self.ang_separation
+        detect.lam = self.lam
+        return detect._pos_single(t, n % 3)
 
     def get_u_v(self, t):
         return self.detector.get_u_v(t)
