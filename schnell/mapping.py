@@ -6,7 +6,6 @@ from .correlation import (
     NoiseCorrelationConstantIdentity,
     NoiseCorrelationConstantR)
 
-from concurrent.futures import ProcessPoolExecutor as Pool
 from itertools import product
 
 class MapCalculator(object):
@@ -804,13 +803,11 @@ class MapCalculator(object):
 
 
 
-
+"""
 
     def get_N_ell_inv_part(self, t, f, nside, indices, is_fspacing_log=False,
                   no_autos=False, deltaOmega_norm=True, proj=None):
-        """
-        Choose which parts of the sum to remove
-        """
+        #Choose which parts of the sum to remove
         t_use = np.atleast_1d(t)
         f_use = np.atleast_1d(f)
         if is_fspacing_log:
@@ -833,9 +830,7 @@ class MapCalculator(object):
 
     def get_G_ell_part(self, t, f, nside, indices, no_autos=False, deltaOmega_norm=True,
                   proj=None):
-        """
-        Choose which parts of the sum to reove
-        """
+        #Choose which parts of the sum to reove
         if np.ndim(no_autos) == 0:
             no_autos = np.array([no_autos] * self.ndet)
         else:
@@ -926,3 +921,5 @@ class MapCalculator(object):
             if np.ndim(t) == 0:
                 gls = np.squeeze(gls, axis=1)
         return gls
+
+"""

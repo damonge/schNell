@@ -1,6 +1,6 @@
 import numpy as np
-from .detector import LISADetector, LISAlikeDetector
-from .space_detector import LISADetector2, ALIADetector2, LISAandALIADetector
+from .detector import LISAlikeDetector
+from .space_detector import LISADetector, ALIADetector, LISAandALIADetector
 
 
 class NoiseCorrelationBase(object):
@@ -126,7 +126,7 @@ class NoiseCorrelationLISA(NoiseCorrelationFromFunctions):
     """
     def __init__(self, det):
         self.ndet = 3
-        if not (isinstance(det, LISADetector) or isinstance(det, LISADetector2)):
+        if not (isinstance(det, LISADetector)):
             raise ValueError("`det` must be of type LISADetector")
         self.psda = det.psd_A
         self.psdx = det.psd_X
@@ -155,11 +155,11 @@ class NoiseCorrelationLISALIA(NoiseCorrelationBase):
     """
     def __init__(self, det):
         self.ndet = 6
-        LISAdet = LISADetector2(0, is_L5Gm=det.is_L5Gm,
+        LISAdet = LISADetector(0, is_L5Gm=det.is_L5Gm,
                                 static=det.detector.static,
                                 include_GCN=det.detector.include_GCN,
                                 mission_duration=det.detector.mission_duration)
-        ALIAdet = ALIADetector2(0, static=det.detector.static,
+        ALIAdet = ALIADetector(0, static=det.detector.static,
                                 include_GCN=det.detector.include_GCN,
                                 mission_duration=det.detector.mission_duration)
         self.psdaL = LISAdet.psd_A
@@ -203,70 +203,50 @@ class NoiseCorrelationTwoLISA(NoiseCorrelationBase):
     """
     def __init__(self, det):
         self.ndet = 6
-        LISA1det = LISADetector2(0, is_L5Gm=det.is_L5Gm,
-                                static=det.detector.static,
-                                include_GCN=det.detector.include_GCN,
-                                mission_duration=det.detector.mission_duration)
-        LISA2det = LISADetector2(0, is_L5Gm=det.is_L5Gm,
-                                static=det.detector.static,
-                                include_GCN=det.detector.include_GCN,
-                                mission_duration=det.detector.mission_duration)
-        self.psdaL1 = LISA1det.psd_A
-        self.psdxL1 = LISA1det.psd_X
-        self.psdaL2 = LISA2det.psd_A
-        self.psdxL2 = LISA2det.psd_X
+        self.psda = det.psd_A
+        self.psdx = det.psd_X
 
-    def _rhoL1(self, f):
+    def _rho(self, f):
         a = self.psdaL1(f)
         x = self.psdxL1(f)
         return x/a
 
-    def _rhoL2(self, f):
-        a = self.psdaL2(f)
-        x = self.psdxL2(f)
-        return x/a
-
     def _get_corrmat(self, f):
         f_use = np.atleast_1d(f)
-        rL1 = self._rhoL1(f_use)
-        rL2 = self._rhoL2(f_use)
+        r = self._rho(f_use)
         mat = np.zeros([len(f_use), 6, 6])
         for i in range(3):
             mat[:, i, i] = 1
             for j in range(i+1, 3):
-                mat[:, i, j] = rL1
-                mat[:, j, i] = rL1
+                mat[:, i, j] = r
+                mat[:, j, i] = r
         for i in range(3, 6):
             mat[:, i, i] = 1
             for j in range(i+1, 6):
-                mat[:, i, j] = rL2
-                mat[:, j, i] = rL2
+                mat[:, i, j] = r
+                mat[:, j, i] = r
         return mat
 
 class NoiseCorrelationMultipleLISA(NoiseCorrelationBase):
     def __init__(self, det):
             self.ndet = det.nb_detectors * 3
-            LISAdet = LISADetector2(0, is_L5Gm=det.is_L5Gm,
-                                static=det.detector.static,
-                                include_GCN=det.detector.include_GCN,
-                                mission_duration=det.detector.mission_duration)
-            self.psdaL = LISAdet.psd_A
-            self.psdxL = LISAdet.psd_X
+            self.psda = det.psd_A
+            self.psdx = det.psd_X
             
-    def _rhoL(self, f):
+    def _rho(self, f):
         a = self.psdaL(f)
         x = self.psdxL(f)
         return x/a
     
     def _get_corrmat(self, f):
         f_use = np.atleast_1d(f)
-        rL = self._rhoL(f_use)
+        r = self._rho(f_use)
         mat = np.zeros((len(f_use), self.ndet, self.ndet))
         for detnb in range(self.ndet // 3):
             offset = 3 * detnb
             for i in range(3):
                 mat[:, offset+i, offset+i] = 1
                 for j in range(i+1, 3):
-                    mat[:, offset+i, offset+j] = rL
-                    mat[:, offset+j, offset+i] = rL
+                    mat[:, offset+i, offset+j] = r
+                    mat[:, offset+j, offset+i] = r
         return mat

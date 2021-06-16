@@ -2,7 +2,7 @@ import numpy as np
 import scipy.integrate as integr
 from .detector import Detector, LISAlikeDetector
 
-class LISADetector2(LISAlikeDetector):
+class LISADetector(LISAlikeDetector):
     """ :class:`LISADetector` objects can be used to describe
     the properties of the LISA network.
 
@@ -54,7 +54,7 @@ class LISADetector2(LISAlikeDetector):
                   np.exp(1j*phase2)*sinc2)
         return tr
 
-class ALIADetector2(LISAlikeDetector):
+class ALIADetector(LISAlikeDetector):
     """ :class:`ALIADetector` objects can be used to describe
     the properties of the ALIA network.
 
@@ -118,13 +118,13 @@ class LISAandALIADetector(Detector):
         self.ang_separation = 2 * np.arcsin(self.separation / 2)
 
         if detector_id in [0, 1, 2]:
-            self.detector = LISADetector2(detector_id, is_L5Gm, static,
+            self.detector = LISADetector(detector_id, is_L5Gm, static,
                                           include_GCN, mission_duration)
             self.name = 'LISA_%d' % detector_id
             self.get_transfer = self.detector._get_transfer_LISA
             self.detector.kap = self.kap
         elif detector_id in [3, 4, 5]:
-            self.detector = ALIADetector2(detector_id-3, static, include_GCN, mission_duration)
+            self.detector = ALIADetector(detector_id-3, static, include_GCN, mission_duration)
             self.name = 'ALIA_%d' % detector_id
             self.get_transfer = self.detector._get_transfer_ALIA
             self.detector.kap = self.kap - self.ang_separation
@@ -177,14 +177,14 @@ class LISAandALIADetector(Detector):
     
     def _pos_single(self, t, n):
         if n in [0, 1, 2]:
-            detect = LISADetector2(0, is_L5Gm=self.is_L5Gm,
+            detect = LISADetector(0, is_L5Gm=self.is_L5Gm,
                                      static=self.detector.static,
                                      include_GCN=self.detector.include_GCN,
                                      mission_duration=self.detector.mission_duration)
             detect.kap = self.kap
             detect.lam = self.lam
         elif n in [3, 4, 5]:
-            detect = ALIADetector2(0, static=self.detector.static,
+            detect = ALIADetector(0, static=self.detector.static,
                                    include_GCN=self.detector.include_GCN,
                                    mission_duration=self.detector.mission_duration)
             detect.kap = self.kap - self.ang_separation
@@ -213,7 +213,7 @@ class TwoLISADetector(Detector):
         self.separation = separation # distance between the LISAs, in AU
         # We suppose that the Earth's motion is circular (?)
         self.ang_separation = 2 * np.arcsin(self.separation / 2)
-        self.detector = LISADetector2(detector_id, is_L5Gm, static,
+        self.detector = LISADetector(detector_id, is_L5Gm, static,
                                     include_GCN, mission_duration)
         self.name = 'LISA_%d' % detector_id
         self.get_transfer = self.detector._get_transfer_LISA
@@ -271,7 +271,7 @@ class TwoLISADetector(Detector):
                          for i in range(6)])
     
     def _pos_single(self, t, n):
-        detect = LISADetector2(0, is_L5Gm=self.is_L5Gm,
+        detect = LISADetector(0, is_L5Gm=self.is_L5Gm,
                                     static=self.detector.static,
                                     include_GCN=self.detector.include_GCN,
                                     mission_duration=self.detector.mission_duration)
@@ -304,7 +304,7 @@ class MultipleLISADetector(Detector):
                  mission_duration=4.):
         self.nb_detectors = nb_detectors
         self.ang_separation = (detector_id // 3) * 2 * np.pi / nb_detectors
-        self.detector = LISADetector2(detector_id, is_L5Gm, static,
+        self.detector = LISADetector(detector_id, is_L5Gm, static,
                                     include_GCN, mission_duration)
         self.name = 'LISA_%d' % detector_id
         self.get_transfer = self.detector._get_transfer_LISA
@@ -357,7 +357,7 @@ class MultipleLISADetector(Detector):
                          for i in range(self.nb_detectors * 3)])
     
     def _pos_single(self, t, n):
-        detect = LISADetector2(0, is_L5Gm=self.is_L5Gm,
+        detect = LISADetector(0, is_L5Gm=self.is_L5Gm,
                                     static=self.detector.static,
                                     include_GCN=self.detector.include_GCN,
                                     mission_duration=self.detector.mission_duration)
