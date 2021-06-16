@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.linalg import block_diag
 from .detector import LISADetector
 
 
@@ -9,7 +10,7 @@ class NoiseCorrelationBase(object):
     Do not use the bare class.
     """
     def __init__(self, ndet):
-        self.ndet
+        self.ndet = ndet
 
     def _get_corrmat(self, f):
         raise NotImplementedError("Don't use the NoiseCorrelationBase class")
@@ -79,6 +80,38 @@ class NoiseCorrelationConstantR(NoiseCorrelationConstant):
         self.ndet = ndet
         self.mat = ((1-r)*np.eye(self.ndet) +
                     np.full([self.ndet, self.ndet], r))
+
+
+class NoiseCorrelationBoxDiagonal(NoiseCorrelationBase):
+    """ This implements a correlation matrix from a set of
+    noise correlation objects. The resulting matrix will be
+    the combination of all correlation matrices in a
+    block-diagonal way.
+
+    Args:
+        corrs: list of `NoiseCorrelationBase` objects.
+    """
+    def __init__(self, corrs):
+        if not isinstance(corrs, list):
+            raise TypeError("`corr` must be a list of "
+                            "`NoiseCorrelation` objects.")
+        self.ncorrs = len(corrs)
+        for c in corrs:
+            if not isinstance(c, NoiseCorrelationBase):
+                raise TypeError("`corr` must be a list of "
+                                "`NoiseCorrelation` objects.")
+        self.corrs = corrs
+        self.ndet = np.sum([c.ndet for c in self.corrs])
+
+    def _get_corrmat(self, f):
+        f_use = np.atleast_1d(f)
+        mats = np.array([c.get_corrmat(f_use)
+                         for c in self.corrs])
+        mat = np.zeros([len(f_use), self.ndet, self.ndet])
+        for i, freq in enumerate(f_use):
+            ms = mats[:, i, :, :]
+            mat[i, :, :] = block_diag(*ms)
+        return mat
 
 
 class NoiseCorrelationFromFunctions(NoiseCorrelationBase):
