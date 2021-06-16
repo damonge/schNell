@@ -365,15 +365,15 @@ class LISADetector(Detector):
         static (bool): if `True`, a static configuration corresponding
             to a perfect equilateral triangle in the x-y plane will
             be assumed.
+        kappa (float): initial longitude (degrees).
+        lambd (float): initial orientation angle (degrees).
     """
     trans_freq_earth = 2 * np.pi / (365 * 24 * 3600)
     R_AU = 1.496E11
-    kap = 0  # initial longitude
-    lam = 0  # initial orientation
     clight = 299792458.
 
     def __init__(self, detector_id, is_L5Gm=False,
-                 static=False):
+                 static=False, kappa=0, lambd=0):
         self.i_d = detector_id % 3
         self.name = 'LISA_%d' % self.i_d
         self.get_transfer = self._get_transfer_LISA
@@ -384,6 +384,8 @@ class LISADetector(Detector):
             self.L = 2.5E9
             self.e = 0.00482419
         self.static = static
+        self.kap = np.radians(kappa)  # initial longitude
+        self.lam = np.radians(lambd)  # Orientation angle
 
     def _get_transfer_LISA(self, u, f, nv):
         # Eq. 48 in astro-ph/0105374
