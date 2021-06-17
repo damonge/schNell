@@ -234,8 +234,8 @@ class NoiseCorrelationMultipleLISA(NoiseCorrelationBase):
             self.psdx = det.psd_X
             
     def _rho(self, f):
-        a = self.psdaL(f)
-        x = self.psdxL(f)
+        a = self.psda(f)
+        x = self.psdx(f)
         return x/a
     
     def _get_corrmat(self, f):

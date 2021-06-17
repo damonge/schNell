@@ -271,6 +271,11 @@ class TwoLISADetector(Detector):
                          for i in range(6)])
     
     def _pos_single(self, t, n):
+        if self.i_d in [0,1,2] and n in [0,1,2]:
+            return self.detector._pos_single(t, n)
+        elif self.i_d in [0,1,2] and n in [0,1,2]:
+            return self.detector._pos_single(t, n-3)
+        
         detect = LISADetector(0, is_L5Gm=self.is_L5Gm,
                                     static=self.detector.static,
                                     include_GCN=self.detector.include_GCN,
@@ -357,6 +362,10 @@ class MultipleLISADetector(Detector):
                          for i in range(self.nb_detectors * 3)])
     
     def _pos_single(self, t, n):
+        det_nb = self.i_d // 3
+        if n in [det_nb, det_nb+1, det_nb+2]:
+            return self.detector._pos_single(t, n%3)
+        
         detect = LISADetector(0, is_L5Gm=self.is_L5Gm,
                                     static=self.detector.static,
                                     include_GCN=self.detector.include_GCN,
