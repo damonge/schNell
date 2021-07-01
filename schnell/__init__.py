@@ -12,9 +12,10 @@ from .correlation import (  # noqa
     NoiseCorrelationMultipleLISA)
 from .detector import (  # noqa
     Detector, GroundDetectorTriangle,
-    GroundDetector)
+    GroundDetector, LISAlikeDetector)
     # BBOStarDetector, BBODetector
 from .space_detector import (  # noqa
-    LISAlikeDetector, LISADetector, ALIADetector, LISAandALIADetector,
+    LISADetector, ALIADetector, DECIGODetector,
+    LISAandALIADetector,
     TwoLISADetector, MultipleLISADetector)
 __version__ = '0.2.0'

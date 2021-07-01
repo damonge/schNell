@@ -99,6 +99,50 @@ class ALIADetector(LISAlikeDetector):
                   np.exp(1j*phase2)*sinc2)
         return tr
 
+class DECIGODetector(LISAlikeDetector):
+    """ :class:`DECIGODetector` objects can be used to describe
+    the properties of the DECIGO network.
+
+    Args:
+        detector_id: detector number (0, 1 or 2).
+        static (bool): if `True`, a static configuration corresponding
+            to a perfect equilateral triangle in the x-y plane will
+            be assumed (default False).
+        include_GCN (bool): if `True`, include galactic confusion
+            noise in PSD computation (default False).
+        mission_duration (float): mission duration in years (default 4.).
+    """
+    def __init__(self, detector_id, static=False,
+                 include_GCN=False, mission_duration=4.):
+        self.i_d = detector_id % 3
+        self.name = 'DECIGO_%d' % self.i_d
+        self.get_transfer = self._get_transfer_DECIGO
+        self.L = 1E6
+        self.e = 1.93E-6
+        self.static = static
+        self.include_GCN = include_GCN
+        self.mission_duration = mission_duration
+        self.path_fluctuation = 1.5E-17
+        self.acc_noise = 3E-16
+
+    def _get_transfer_DECIGO(self, u, f, nv):        
+        # Eq. 48 in astro-ph/0105374
+        # xf = f/(2*fstar)/pi, fstar = c/(2*pi*L)
+        xf = self.L * f / self.clight
+
+        # u,nv is [nt, npix]
+        u_dot_n = np.sum(u[:, :, None] * nv[:, None, :],
+                         axis=0)
+
+        # For some reason Numpy's sinc(x) is sin(pi*x) / (pi*x)
+        sinc1 = np.sinc(xf[None, :, None]*(1-u_dot_n[:, None, :]))
+        sinc2 = np.sinc(xf[None, :, None]*(1+u_dot_n[:, None, :]))
+        phase1 = -np.pi*xf[None, :, None]*(3+u_dot_n[:, None, :])
+        phase2 = -np.pi*xf[None, :, None]*(1+u_dot_n[:, None, :])
+        tr = 0.5*(np.exp(1j*phase1)*sinc1 +
+                  np.exp(1j*phase2)*sinc2)
+        return tr
+
 class LISAandALIADetector(Detector):
     """ :class:`LISAandALIADetector objects can be used to describe 
     the combination of a LISA and an ALIA network. id 0 to 2 is LISA;
