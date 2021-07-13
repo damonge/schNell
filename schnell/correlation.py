@@ -207,8 +207,8 @@ class NoiseCorrelationTwoLISA(NoiseCorrelationBase):
         self.psdx = det.psd_X
 
     def _rho(self, f):
-        a = self.psdaL1(f)
-        x = self.psdxL1(f)
+        a = self.psda(f)
+        x = self.psdx(f)
         return x/a
 
     def _get_corrmat(self, f):
@@ -227,7 +227,7 @@ class NoiseCorrelationTwoLISA(NoiseCorrelationBase):
                 mat[:, j, i] = r
         return mat
 
-class NoiseCorrelationMultipleLISA(NoiseCorrelationBase):
+class NoiseCorrelationMultipleSpaceDetectors(NoiseCorrelationBase):
     def __init__(self, det):
             self.ndet = det.nb_detectors * 3
             self.psda = det.psd_A

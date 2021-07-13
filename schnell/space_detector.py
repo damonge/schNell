@@ -420,3 +420,86 @@ class MultipleLISADetector(Detector):
 
     def get_u_v(self, t):
         return self.detector.get_u_v(t)
+
+
+class MultipleALIADetector(Detector):
+    """ :class:`MultipleALIADetector` objects can be used to describe 
+    the combination of multiple ALIA networks at regular intervals in
+    the same orbit around the Sun. Each ALIA network is described by
+    three successive ids : 0 to 2, 3 to 5...
+    """
+    trans_freq_earth = 2 * np.pi / (365 * 24 * 3600)
+    R_AU = 1.496E11
+    kap = 0  # initial longitude of ALIA1 ; other ALIAs are behind
+    lam = 0  # initial orientation
+    clight = 299792458.
+
+    def __init__(self, detector_id, nb_detectors,
+                 static=False, include_GCN=False,
+                 mission_duration=4.):
+        self.nb_detectors = nb_detectors
+        self.ang_separation = (detector_id // 3) * 2 * np.pi / nb_detectors
+        self.detector = ALIADetector(detector_id, static,
+                                    include_GCN, mission_duration)
+        self.name = 'ALIA_%d' % detector_id
+        self.get_transfer = self.detector._get_transfer_ALIA
+
+        self.detector.kap = self.kap - self.ang_separation
+        self.detector.lam = self.lam
+        self.i_d = detector_id
+        self.L = self.detector.L
+        self.e = self.detector.e
+
+    def psd_A(self, f):
+        return self.detector.psd_A(f)
+    
+    def psd_X(self, f):
+        return self.detector.psd_X(f)
+    
+    def GCN(self, f):
+        return self.detector.GCN(f)
+    
+    def psd(self, f):
+        return self.detector.psd(f)
+    
+    def response(self, f):
+        return self.detector.response(f)
+    
+    def sensitivity(self, f):
+        return self.detector.sensitivity(f)
+    
+    def get_position(self, t):
+        """ Returns a 2D array containing the 3D position of
+        the detector at a series of times. The output array
+        has shape [3, N_t], where N_t is the size of `t`.
+
+        .. note:: The spacecraft orbits are calculated using Eq. 1
+                  of gr-qc/0311069.
+
+        Args:
+            t: time of observation (in seconds).
+
+        Returns:
+            array_like: detector position (in m) as a function \
+                of time.
+        """
+        return self._pos_single(t, self.i_d)
+    
+    def _pos_all(self, t):
+        return np.array([self._pos_single(t, i)
+                         for i in range(self.nb_detectors * 3)])
+    
+    def _pos_single(self, t, n):
+        det_nb = self.i_d // 3
+        if n in [det_nb, det_nb+1, det_nb+2]:
+            return self.detector._pos_single(t, n%3)
+        
+        detect = ALIADetector(0, static=self.detector.static,
+                                    include_GCN=self.detector.include_GCN,
+                                    mission_duration=self.detector.mission_duration)
+        detect.kap = self.kap - self.ang_separation
+        detect.lam = self.lam
+        return detect._pos_single(t, n % 3)
+
+    def get_u_v(self, t):
+        return self.detector.get_u_v(t)
