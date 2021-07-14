@@ -1,5 +1,6 @@
 import numpy as np
-from .detector import LISADetector
+from .detector import LISAlikeDetector
+from .space_detector import LISADetector, ALIADetector, LISAandALIADetector
 
 
 class NoiseCorrelationBase(object):
@@ -125,7 +126,127 @@ class NoiseCorrelationLISA(NoiseCorrelationFromFunctions):
     """
     def __init__(self, det):
         self.ndet = 3
-        if not isinstance(det, LISADetector):
+        if not (isinstance(det, LISADetector)):
             raise ValueError("`det` must be of type LISADetector")
         self.psda = det.psd_A
         self.psdx = det.psd_X
+
+
+class NoiseCorrelationLISAlike(NoiseCorrelationFromFunctions):
+    """ This implements the noise correlation
+    matrix for LISA-like detectors.
+
+    Args:
+        det: :class:`~schnell.LISAlikeDetector` object.
+    """
+    def __init__(self, det):
+        self.ndet = 3
+        if not (isinstance(det, LISAlikeDetector)):
+            raise ValueError("`det` must be of type LISAlikeDetector")
+        self.psda = det.psd_A
+        self.psdx = det.psd_X
+
+
+class NoiseCorrelationLISALIA(NoiseCorrelationBase):
+    """ This implements the correlation matrix for LISA and ALIA combined.
+
+    Args:
+        det: :class:`~schnell.LISAandALIADetector` object.
+    """
+    def __init__(self, det):
+        self.ndet = 6
+        LISAdet = LISADetector(0, is_L5Gm=det.is_L5Gm,
+                                static=det.detector.static,
+                                include_GCN=det.detector.include_GCN,
+                                mission_duration=det.detector.mission_duration)
+        ALIAdet = ALIADetector(0, static=det.detector.static,
+                                include_GCN=det.detector.include_GCN,
+                                mission_duration=det.detector.mission_duration)
+        self.psdaL = LISAdet.psd_A
+        self.psdxL = LISAdet.psd_X
+        self.psdaA = ALIAdet.psd_A
+        self.psdxA = ALIAdet.psd_X
+
+    def _rhoL(self, f):
+        a = self.psdaL(f)
+        x = self.psdxL(f)
+        return x/a
+
+    def _rhoA(self, f):
+        a = self.psdaA(f)
+        x = self.psdxA(f)
+        return x/a
+
+    def _get_corrmat(self, f):
+        f_use = np.atleast_1d(f)
+        rL = self._rhoL(f_use)
+        rA = self._rhoA(f_use)
+        mat = np.zeros([len(f_use), 6, 6])
+        for i in range(3):
+            mat[:, i, i] = 1
+            for j in range(i+1, 3):
+                mat[:, i, j] = rL
+                mat[:, j, i] = rL
+        for i in range(3, 6):
+            mat[:, i, i] = 1
+            for j in range(i+1, 6):
+                mat[:, i, j] = rA
+                mat[:, j, i] = rA
+        return mat
+
+
+class NoiseCorrelationTwoLISA(NoiseCorrelationBase):
+    """ This implements the correlation matrix for LISA and ALIA combined.
+
+    Args:
+        det: :class:`~schnell.LISAandALIADetector` object.
+    """
+    def __init__(self, det):
+        self.ndet = 6
+        self.psda = det.psd_A
+        self.psdx = det.psd_X
+
+    def _rho(self, f):
+        a = self.psda(f)
+        x = self.psdx(f)
+        return x/a
+
+    def _get_corrmat(self, f):
+        f_use = np.atleast_1d(f)
+        r = self._rho(f_use)
+        mat = np.zeros([len(f_use), 6, 6])
+        for i in range(3):
+            mat[:, i, i] = 1
+            for j in range(i+1, 3):
+                mat[:, i, j] = r
+                mat[:, j, i] = r
+        for i in range(3, 6):
+            mat[:, i, i] = 1
+            for j in range(i+1, 6):
+                mat[:, i, j] = r
+                mat[:, j, i] = r
+        return mat
+
+class NoiseCorrelationMultipleSpaceDetectors(NoiseCorrelationBase):
+    def __init__(self, det):
+            self.ndet = det.nb_detectors * 3
+            self.psda = det.psd_A
+            self.psdx = det.psd_X
+            
+    def _rho(self, f):
+        a = self.psda(f)
+        x = self.psdx(f)
+        return x/a
+    
+    def _get_corrmat(self, f):
+        f_use = np.atleast_1d(f)
+        r = self._rho(f_use)
+        mat = np.zeros((len(f_use), self.ndet, self.ndet))
+        for detnb in range(self.ndet // 3):
+            offset = 3 * detnb
+            for i in range(3):
+                mat[:, offset+i, offset+i] = 1
+                for j in range(i+1, 3):
+                    mat[:, offset+i, offset+j] = r
+                    mat[:, offset+j, offset+i] = r
+        return mat

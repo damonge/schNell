@@ -6,6 +6,7 @@ from .correlation import (
     NoiseCorrelationConstantIdentity,
     NoiseCorrelationConstantR)
 
+from itertools import product
 
 class MapCalculator(object):
     """ Map calculators compute map-level quantities for a given
@@ -49,7 +50,7 @@ class MapCalculator(object):
         else:
             self.rho = corr_matrix
 
-        if self.rho.ndet != self.rho.ndet:
+        if self.rho.ndet != self.ndet:
             raise ValueError("Your correlation matrix has the wrong "
                              "dimensions.")
 
@@ -407,6 +408,65 @@ class MapCalculator(object):
         pi = np.max(oms, axis=0)
         return pi
 
+    def get_monopole_curve(self, t, f, nside, no_autos=False,
+                        proj=None, compute_FED=False):
+        """ Computes the monopole for this network (eq before eq. 44 of
+        the companion paper). By default, the sensitivity monopole is
+        computed; the monopole for fractional energy density can also be
+        computed.
+
+        Args:
+            t (float or array_like): `N_t` time values (in s). If a single
+                number is passed, then the "rigid network" approximation
+                is used, and this time is interpreted as the total
+                observing time. Otherwise, an integral over time is
+                performed.
+            f: array of `N_f` frequency values (in Hz). This will be the
+                frequencies at which the monopole will be computed.
+            nside: HEALPix resolution parameter. Used to create
+                maps of the antenna pattern and computes its sky
+                average.
+            no_autos (bool, or array_like): if a single `True`
+                value, all detector auto-correlations will be
+                removed. If a 1D array, only the auto-correlations
+                for which the array element is `True` will be
+                removed. If a 2D array, all autos and cross-
+                correlations for which the array element is `True`
+                will be removed.
+            proj (dictionary or `None`): if you want to project the data
+                onto a set of linear combinations of the detectors, pass
+                the linear coefficients of those here. `proj` should be
+                a dictionary with two items: 'vectors' containing a 2D
+                array (or a single vector) with the linear coefficients
+                as rows and 'deproj'. If 'deproj' is `True`, then those
+                linear combinations will actually be projeted out. If
+                `proj` is `None`, then no projection or de-projection
+                will happen.
+            compute_FED (bool): if True, the monopole will be for the
+                fractional energy density. if False, it will be the
+                intensity monopole. Default is False.
+
+        Returns:
+            array_like: array of size `N_f`.
+        """
+        t_use = np.atleast_1d(t)
+        f_use = f
+        inv_dsig2_dnu_dt = self.get_dsigm2_dnu_t(t_use, f_use, nside,
+                                                 no_autos=no_autos,
+                                                 proj=proj)
+        # Sum over time
+        if len(t_use) == 1:
+            inv_dsig2_dnu = np.squeeze(inv_dsig2_dnu_dt * t)
+        else:
+            dt = np.mean(np.diff(t_use))
+            inv_dsig2_dnu = np.sum(inv_dsig2_dnu_dt, axis=0) * dt
+        if not compute_FED:
+            e_f = (f_use / self.f_pivot) ** self.specin_omega
+            H0 = self.h * 3.24077929E-18 # H0 in km/s/Mpc in Hz
+            prefac = (4 * np.pi**2 * f**3 * e_f / (3 * H0**2)) **(-2)
+            return prefac / np.sqrt(inv_dsig2_dnu)
+        return 1 / np.sqrt(inv_dsig2_dnu)  # what about dnu?
+
     def get_dsigm2_dnu_t(self, t, f, nside, no_autos=False,
                          proj=None):
         """ Computes :math:`d\\sigma^{-2}/df\\,dt` for a set
@@ -629,6 +689,59 @@ class MapCalculator(object):
         aalms_i = np.zeros([self.ndet, self.ndet,
                             nt, nf, nalm],
                            dtype=np.cdouble)
+        """
+        global _NOTUSE_aalm
+        def _NOTUSE_aalm(params1):
+            print("boop")
+            i1, i2, no_autos, t_use, f_use, ct, st, cp, sp, inc_baseline = params1
+            if no_autos[i1, i2] or i2 < i1:
+                return np.zeros((2, nt *nf, nalm))
+            antenna = self._get_antenna_ij(i1, i2, t_use, f_use,
+                                               ct, st, cp, sp,
+                                               inc_baseline=inc_baseline)
+
+            global _NOTUSE_tfint
+            def _NOTUSE_tfint(params2):
+                i_t, i_f, ant, i1, i2 = params2
+                a = ant[i_t, i_f, :]
+                alm_r = hp.map2alm(np.real(a))
+                alm_i = hp.map2alm(np.imag(a))
+                return alm_r, alm_i
+            tlist = range(nt)
+            flist = range(nf)
+            paramlist_2 = product(tlist, flist, [antenna], [i1], [i2])
+            with Pool() as localpool:
+                results = list(localpool.map(_NOTUSE_tfint, paramlist_2))
+            return np.array(results)
+            all_r, all_i = [], []
+            ###
+            for i_t in range(nt):
+                for i_f in range(nf):
+                    a = antenna[i_t, i_f, :]
+                    alm_r = hp.map2alm(np.real(a))
+                    alm_i = hp.map2alm(np.imag(a))
+                    all_r.append(alm_r)
+                    all_i.append(alm_i)
+            ###
+            print(f'{i1}, {i2} : done')
+            return np.array([all_r, all_i])
+        
+        
+        i1, i2 = range(self.ndet), range(self.ndet)
+        paramlist_1 = product(i1, i2, [no_autos], [t_use], [f_use],
+                        [ct], [st], [cp], [sp], [True])
+        with Pool() as pool:
+            aalms = np.array(list(pool.map(_NOTUSE_aalm, paramlist_1)))
+        print(len(aalms))
+        print(len(aalms[0]))
+        print(aalms_i.shape)
+        aalms_r = aalms[:,0].reshape(aalms_r.shape)
+        aalms_i = aalms[:,1].reshape(aalms_i.shape)
+        for i1 in range(self.ndet):
+            for i2 in range(i1):
+                aalms_r[i1, i2, :,:,:] = aalms_r[i2, i1, :,:,:]
+                aalms_i[i1, i2, :,:,:] = - aalms_i[i2, i1, :,:,:]
+        """
         for i1 in range(self.ndet):
             for i2 in range(i1, self.ndet):
                 if no_autos[i1, i2]:
@@ -646,10 +759,10 @@ class MapCalculator(object):
                         if i2 != i1:
                             aalms_r[i2, i1, i_t, i_f, :] = alm_r
                             aalms_i[i2, i1, i_t, i_f, :] = -alm_i
-
         if pmat is not None:
             aalms_r = np.einsum('ijmno,ki,lj', aalms_r, pmat, pmat)
             aalms_i = np.einsum('ijmno,ki,lj', aalms_i, pmat, pmat)
+        
 
         # Prefactors
         e_f = (f_use / self.f_pivot)**self.specin_omega / self.norm_pivot
@@ -687,3 +800,126 @@ class MapCalculator(object):
             if np.ndim(t) == 0:
                 gls = np.squeeze(gls, axis=1)
         return gls
+
+
+
+"""
+
+    def get_N_ell_inv_part(self, t, f, nside, indices, is_fspacing_log=False,
+                  no_autos=False, deltaOmega_norm=True, proj=None):
+        #Choose which parts of the sum to remove
+        t_use = np.atleast_1d(t)
+        f_use = np.atleast_1d(f)
+        if is_fspacing_log:
+            dlf = np.mean(np.diff(np.log(f)))
+            df = f * dlf
+        else:
+            df = np.mean(np.diff(f)) * np.ones(len(f))
+        gls = self.get_G_ell_part(t_use, f_use, nside, indices, no_autos=no_autos,
+                             deltaOmega_norm=deltaOmega_norm, proj=proj)
+        # Sum over frequencies
+        gls = np.sum(gls * df[:, None, None], axis=0)
+        # Sum over times
+        if len(t_use) == 1:
+            gls = np.squeeze(gls * t)
+        else:
+            dt = np.mean(np.diff(t_use))
+            gls = np.sum(gls, axis=0) * dt
+        return gls
+
+
+    def get_G_ell_part(self, t, f, nside, indices, no_autos=False, deltaOmega_norm=True,
+                  proj=None):
+        #Choose which parts of the sum to reove
+        if np.ndim(no_autos) == 0:
+            no_autos = np.array([no_autos] * self.ndet)
+        else:
+            if len(no_autos) != self.ndet:
+                raise ValueError("No autos should have %d elements" %
+                                 self.ndet)
+        if np.ndim(no_autos) == 1:
+            no_autos = np.diag(no_autos)
+        no_autos = np.array(no_autos)
+
+        pmat = self._compute_projector(proj)
+
+        t_use = np.atleast_1d(t)
+        f_use = np.atleast_1d(f)
+
+        nf = len(f_use)
+        nt = len(t_use)
+        npix = hp.nside2npix(nside)
+        nalm = (3*nside*(3*nside+1))//2
+        nell = 3*nside
+        th, ph = hp.pix2ang(nside, np.arange(npix))
+        ct, st, cp, sp = self._precompute_skyvec(th, ph)
+
+        # Get S matrix:
+        iS_f = self._get_iS_f(f_use, pmat)
+
+        # Get antenna alms
+        aalms_r = np.zeros([self.ndet, self.ndet,
+                            nt, nf, nalm],
+                           dtype=np.cdouble)
+        aalms_i = np.zeros([self.ndet, self.ndet,
+                            nt, nf, nalm],
+                           dtype=np.cdouble)
+
+        for i1 in range(self.ndet):
+            for i2 in range(i1, self.ndet):
+                if no_autos[i1, i2]:
+                    continue
+                antenna = self._get_antenna_ij(i1, i2, t_use, f_use,
+                                               ct, st, cp, sp,
+                                               inc_baseline=True)
+                for i_t in range(nt):
+                    for i_f in range(nf):
+                        a = antenna[i_t, i_f, :]
+                        alm_r = hp.map2alm(np.real(a))
+                        alm_i = hp.map2alm(np.imag(a))
+                        aalms_r[i1, i2, i_t, i_f, :] = alm_r
+                        aalms_i[i1, i2, i_t, i_f, :] = alm_i
+                        if i2 != i1:
+                            aalms_r[i2, i1, i_t, i_f, :] = alm_r
+                            aalms_i[i2, i1, i_t, i_f, :] = -alm_i
+        if pmat is not None:
+            aalms_r = np.einsum('ijmno,ki,lj', aalms_r, pmat, pmat)
+            aalms_i = np.einsum('ijmno,ki,lj', aalms_i, pmat, pmat)
+        
+
+        # Prefactors
+        e_f = (f_use / self.f_pivot)**self.specin_omega / self.norm_pivot
+        prefac = 0.5 * (2 * e_f / 5)**2
+        if deltaOmega_norm:
+            prefac *= (4*np.pi)**2
+
+        gls = np.zeros([nf, nt, nell])
+        print(self.ndet)
+        for i_t in range(nt):
+            for i_f in range(nf):
+                for iA, iB, iC, iD in indices:
+                                iS_AB = iS_f[i_f, iA, iB]
+                                gBCr = aalms_r[iB, iC, i_t, i_f, :]
+                                gBCi = aalms_i[iB, iC, i_t, i_f, :]
+                                if no_autos[iB, iC]:
+                                    continue
+                                iS_CD = iS_f[i_f, iC, iD]
+                                gADr = aalms_r[iA, iD, i_t, i_f, :]
+                                gADi = aalms_i[iA, iD, i_t, i_f, :]
+                                if no_autos[iA, iD]:
+                                    continue
+                                clr = hp.alm2cl(gBCr, gADr)
+                                cli = hp.alm2cl(gBCi, gADi)
+                                gls[i_f, i_t, :] += iS_AB * iS_CD * (clr + cli)
+
+        gls = gls * prefac[:, None, None]
+        if np.ndim(f) == 0:
+            gls = np.squeeze(gls, axis=0)
+            if np.ndim(t) == 0:
+                gls = np.squeeze(gls, axis=0)
+        else:
+            if np.ndim(t) == 0:
+                gls = np.squeeze(gls, axis=1)
+        return gls
+
+"""
