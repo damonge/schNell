@@ -1,5 +1,5 @@
 # schNell
-
+test
 schNell is a very lightweight python module that can be used to compute basic map-level noise properties for generic networks of gravitational wave interferometers. This includes primarily the noise power spectrum  "N_ell", but also other things, such as antenna patterns, overlap functions, inverse variance maps etc.
 
 ## Installation
